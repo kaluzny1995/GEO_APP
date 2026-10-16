@@ -1,0 +1,182 @@
+/* GEO_APP dark theme — inspired by Black Dashboard React (MIT, Creative Tim).
+   Original Vite port CSS (not copied from template), dark cards + accent charts. */
+:root {
+  --bd-bg: #1e1e2f;
+  --bd-bg-2: #17141f;
+  --bd-card: #27293d;
+  --bd-card-2: #2b2e4a;
+  --bd-ink: #ffffff;
+  --bd-muted: #9a9a9a;
+  --bd-line: rgba(255,255,255,0.08);
+  --bd-primary: #e14eca;
+  --bd-info: #1d8cf8;
+  --bd-success: #00f2c3;
+  --bd-warning: #ff8d72;
+  --bd-danger: #fd5d93;
+  --bd-radius: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bd-bg);
+  color: var(--bd-ink);
+}
+
+a { color: inherit; }
+
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--bd-bg) 0%, var(--bd-bg-2) 100%);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 230px;
+  flex-shrink: 0;
+  background: linear-gradient(0deg, #ba54f5 0%, #e14eca 100%);
+  background: #1f1e2e;
+  border-right: 1px solid var(--bd-line);
+  padding: 18px 14px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.sidebar .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 16px;
+  border-bottom: 1px solid var(--bd-line);
+  margin-bottom: 14px;
+}
+.sidebar .logo {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--bd-primary), var(--bd-info));
+  border-radius: 10px;
+  font-weight: 800;
+}
+.sidebar .brand h2 { font-size: 15px; margin: 0; letter-spacing: 0.06em; }
+.sidebar .brand small { color: var(--bd-muted); }
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #d4d4e0;
+  text-decoration: none;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.nav-link .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bd-muted); }
+.nav-link.active, .nav-link:hover {
+  background: rgba(225, 78, 202, 0.16);
+  color: #fff;
+}
+.nav-link.active .dot { background: var(--bd-primary); }
+.sidebar .foot { margin-top: 18px; font-size: 12px; color: var(--bd-muted); }
+
+/* Main */
+.main-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--bd-line);
+  background: rgba(39, 41, 61, 0.6);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.topbar h1 { font-size: 18px; margin: 0; font-weight: 600; }
+.topbar p { margin: 2px 0 0; color: var(--bd-muted); font-size: 13px; }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+select, input {
+  background: var(--bd-card);
+  color: var(--bd-ink);
+  border: 1px solid var(--bd-line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.content { padding: 20px 24px 40px; max-width: 1240px; width: 100%; margin: 0 auto; }
+
+.grid { display: grid; gap: 16px; }
+.grid.stats { grid-template-columns: repeat(4, 1fr); }
+.grid.two { grid-template-columns: 1.5fr 1fr; }
+.grid.three { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 1024px) {
+  .grid.stats { grid-template-columns: repeat(2, 1fr); }
+  .grid.two, .grid.three { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+
+.card {
+  background: var(--bd-card);
+  border: 1px solid var(--bd-line);
+  border-radius: var(--bd-radius);
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.card h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+.card .muted, .muted { color: var(--bd-muted); }
+.card .sub { margin: 0 0 12px; font-size: 13px; }
+
+.stat-value { font-size: 28px; font-weight: 700; margin: 8px 0; }
+.delta-up { color: var(--bd-success); font-weight: 700; }
+.delta-down { color: var(--bd-danger); font-weight: 700; }
+
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border: 1px solid transparent;
+}
+.badge-ok { background: rgba(0,242,195,0.15); color: #00f2c3; border-color: rgba(0,242,195,0.35); }
+.badge-warn { background: rgba(255,141,114,0.15); color: #ff8d72; border-color: rgba(255,141,114,0.4); }
+.badge-bad { background: rgba(253,93,147,0.16); color: #fd5d93; border-color: rgba(253,93,147,0.4); }
+.badge-info { background: rgba(29,140,248,0.16); color: #5db2ff; border-color: rgba(29,140,248,0.4); }
+.badge-neutral { background: rgba(255,255,255,0.08); color: #d4d4e0; border-color: var(--bd-line); }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--bd-line); }
+th button { background: none; border: 0; color: inherit; font: inherit; font-weight: 700; cursor: pointer; padding: 0; }
+tbody tr:hover td { background: rgba(255,255,255,0.03); }
+
+.gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) { .gauges { grid-template-columns: 1fr; } }
+.gauge {
+  text-align: center;
+  border: 1px solid var(--bd-line);
+  border-radius: 10px;
+  padding: 14px 10px;
+  background: var(--bd-card-2);
+}
+.gauge strong { display: block; font-size: 22px; margin-top: 6px; }
+
+.footer { padding: 18px 24px 30px; color: var(--bd-muted); font-size: 13px; text-align: center; }
+.footer a { color: #c9c9d8; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 9px 14px; border-radius: 8px;
+  border: 1px solid var(--bd-line);
+  background: linear-gradient(135deg, var(--bd-primary), #7b2ff7);
+  color: #fff; font-weight: 600; cursor: pointer; text-decoration: none;
+}
+.btn.ghost { background: transparent; }
+
+.toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+.toolbar h2 { margin: 0; }

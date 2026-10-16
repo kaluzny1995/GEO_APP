@@ -1,0 +1,7 @@
+/* Minimal resets that play well with Bootstrap + bd-vite.css */
+#root { min-height: 100vh; }
+code {
+  background: rgba(255,255,255,0.08);
+  padding: 1px 6px;
+  border-radius: 6px;
+}
