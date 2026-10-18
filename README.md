@@ -6,7 +6,26 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
 
 ## Features
 
-- `/admin/overview` — front page with title and description of what GEO_APP is for
+- `/admin/overview` — welcome page with what GEO_APP is for, step-by-step
+  instructions for reading the dashboard, and a button linking to it
+- `/admin/data-quality/:tableName/:fileDate` — data-quality dashboard for a table
+  and snapshot: KPI cards, quality gauges, line/radar/bar/doughnut charts (the
+  trend line covers all discovered snapshot dates), and a sortable/filterable
+  rule-level table. Table and snapshot selectors are in the
+  toolbar, listed alphabetically, and default to `avalanche_org`. The snapshot
+  list is discovered from the API (last 120 days + `overall`) and cached per
+  table.
+- Data comes from **GEO_API** at `http://localhost:8000` — see
+  [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for the endpoint contract,
+  long-format metrics and dimension mapping.
+
+## API
+
+The data-quality view expects GEO_API running at `http://localhost:8000`
+(the base URL is set in `src/api/dataQuality.js`). If the API is unreachable or
+times out, the view shows a red alert — "API server is down! Please check the
+API server." — with a Retry button; other errors (e.g. HTTP 500) show a plain
+error card.
 
 ## Install
 
@@ -16,6 +35,8 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build
 npm run preview
+npm test         # Vitest + React Testing Library
+npm run lint     # ESLint
 ```
 
 ## Project structure
@@ -25,12 +46,18 @@ GEO_APP/
 ├── index.html
 ├── package.json
 ├── vite.config.js
-├── jsconfig.json
+├── vitest.config.js
+├── DATA_QUALITY_METRICS.md  # GEO_API endpoint contract & metric mapping
 ├── src/
-│   ├── main.jsx            # HashRouter + Bootstrap + theme CSS
-│   ├── App.jsx             # Admin shell (Sidebar + TopNavbar + Routes)
-│   ├── routes.js           # overview (front page only for now)
-│   ├── views/              # Landing (more views can be added later)
+│   ├── main.jsx             # HashRouter + Bootstrap + theme CSS
+│   ├── App.jsx              # Admin shell (Sidebar + TopNavbar + Routes)
+│   ├── routes.js            # route table (overview, dashboard, data quality, …)
+│   ├── api/dataQuality.js   # GEO_API client (fetch, timeout, date discovery)
+│   ├── views/               # Landing, DataQualityView, Dashboard, ChartsView, …
+│   ├── components/          # Sidebar, StatCard, GaugeCard, DataQualityTable, …
+│   ├── utils/quality.js     # overallScore / toneFor helpers
+│   ├── variables/charts.js  # chart colors and base options
+│   ├── test/                # Vitest setup (Chart.js/CSS mocks) + console checks
 │   └── assets/css/bd-vite.css  # dark theme (original, inspired by Black Dashboard)
 └── .github/workflows/ci.yml
 ```

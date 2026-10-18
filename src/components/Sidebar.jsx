@@ -12,16 +12,25 @@ export default function Sidebar() {
         </div>
       </div>
       <nav className="nav">
-        {routes.map((r) => (
-          <NavLink
-            key={r.path}
-            to={r.layout + r.path}
-            className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-          >
-            <span className="dot" />
-            {r.name}
-          </NavLink>
-        ))}
+        {routes
+          .filter((r) => !r.path.includes(':'))
+          .map((r) => (
+            <NavLink
+              key={r.path}
+              to={r.layout + r.path}
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+            >
+              <span className="dot" />
+              {r.name}
+            </NavLink>
+          ))}
+        <NavLink
+          to="/admin/data-quality/avalanche_org/overall"
+          className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+        >
+          <span className="dot" />
+          Data Quality
+        </NavLink>
       </nav>
       <div className="foot">
         Black Dashboard UI

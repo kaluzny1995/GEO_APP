@@ -11,7 +11,7 @@ export default function App() {
       <div className="main-panel">
         <TopNavbar
           title="GEO_APP · Data Quality"
-          subtitle="Overview — what this app is for"
+          subtitle="Monitor completeness, validity, uniqueness and consistency across 19 geographic dataset tables"
         />
         <main className="content">
           <Routes>

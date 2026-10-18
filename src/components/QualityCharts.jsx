@@ -12,6 +12,7 @@ import {
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import { baseOptions, chartColors } from '../variables/charts.js'
 
+// Register Chart.js components at module load time
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -24,6 +25,7 @@ ChartJS.register(
 )
 
 export default function QualityCharts({ dataset }) {
+
   const trendLabels = dataset.trend.map((t) => t.month)
   const trendData = dataset.trend.map((t) => t.score)
 

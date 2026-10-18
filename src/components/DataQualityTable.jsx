@@ -31,7 +31,7 @@ export default function DataQualityTable({ rows }) {
   }
 
   return (
-    <div>
+    <div className="dq-table">
       <div style={{ marginBottom: 12 }}>
         <input
           placeholder="Filter rules… (e.g. latitude, fail)"
