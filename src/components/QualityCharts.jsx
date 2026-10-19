@@ -11,6 +11,7 @@ import {
 } from 'chart.js'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
 import { baseOptions, chartColors, passRateBarOptions } from '../variables/charts.js'
+import { SCORE_THRESHOLDS } from '../config.js'
 
 // Register Chart.js components at module load time
 ChartJS.register(
@@ -36,7 +37,7 @@ export default function QualityCharts({ dataset }) {
         label: `${dataset.name} score`,
         data: trendData,
         borderColor: chartColors.primary,
-        backgroundColor: 'rgba(225,78,202,0.2)',
+        backgroundColor: chartColors.primarySoft,
         tension: 0.4,
         fill: true,
       },
@@ -52,7 +53,11 @@ export default function QualityCharts({ dataset }) {
         label: 'Pass %',
         data: passRates,
         backgroundColor: dataset.rules.map((r) =>
-          r.passRate >= 90 ? chartColors.success : r.passRate >= 75 ? chartColors.warning : chartColors.danger
+          r.passRate >= SCORE_THRESHOLDS.good
+            ? chartColors.success
+            : r.passRate >= SCORE_THRESHOLDS.warn
+              ? chartColors.warning
+              : chartColors.danger
         ),
       },
     ],

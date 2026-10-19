@@ -20,10 +20,18 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
   [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for the endpoint contract,
   long-format metrics and dimension mapping.
 
+## Configuration
+
+App-wide values (API base URL, request timeout, probe window, default table,
+tracked table names, score/rule thresholds, labels, number locale) live in
+[`src/config.js`](src/config.js). The API base URL defaults to
+`http://localhost:8000` and can be overridden with the `VITE_API_BASE`
+environment variable.
+
 ## API
 
 The data-quality view expects GEO_API running at `http://localhost:8000`
-(the base URL is set in `src/api/dataQuality.js`). If the API is unreachable or
+(the base URL is set in `src/config.js`). If the API is unreachable or
 times out, the view shows a red alert — "API server is down! Please check the
 API server." — with a Retry button; other errors (e.g. HTTP 500) show a plain
 error card.
@@ -50,13 +58,14 @@ GEO_APP/
 ├── vitest.config.js
 ├── DATA_QUALITY_METRICS.md  # GEO_API endpoint contract & metric mapping
 ├── src/
-│   ├── main.jsx             # HashRouter + Bootstrap + theme CSS
+│   ├── main.jsx             # BrowserRouter + Bootstrap + theme CSS
 │   ├── App.jsx              # Admin shell (Sidebar + TopNavbar + Routes)
-│   ├── routes.js            # route table (overview, dashboard, data quality, …)
+│   ├── config.js            # app config (API base, tables, thresholds, labels)
+│   ├── routes.js            # route table (overview, data quality, …)
 │   ├── api/dataQuality.js   # GEO_API client (fetch, timeout, date discovery)
 │   ├── views/               # Landing, DataQualityView, Dashboard, ChartsView, …
 │   ├── components/          # Sidebar, StatCard, GaugeCard, DataQualityTable, …
-│   ├── utils/quality.js     # overallScore / toneFor helpers
+│   ├── utils/quality.js     # overallScore / toneFor / changeTone helpers
 │   ├── variables/charts.js  # chart colors and base options
 │   ├── test/                # Vitest setup (Chart.js/CSS mocks) + console checks
 │   └── assets/css/bd-vite.css  # dark theme (original, inspired by Black Dashboard)

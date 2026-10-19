@@ -1,4 +1,9 @@
 import { NavLink } from 'react-router-dom'
+import { DEFAULT_TABLE, OVERALL_DATE, TABLE_NAMES } from '../config.js'
+
+const sourceTables = TABLE_NAMES.filter((t) => t !== 'union_etl' && !t.endsWith('_etl'))
+const etlTables = TABLE_NAMES.filter((t) => t !== 'union_etl' && t.endsWith('_etl'))
+const unionTables = TABLE_NAMES.filter((t) => t === 'union_etl')
 
 export default function Landing() {
   return (
@@ -36,22 +41,24 @@ export default function Landing() {
             sidebar — the address is <code>/data-quality</code>.
           </li>
           <li>
-            Pick a dataset table in the first dropdown — 19 tables are tracked: 9 data
-            sources, 9 ETL tables and 1 union table. It defaults to <code>avalanche_org</code>,
-            whose <code>overall</code> metrics load automatically when the dashboard
-            opens; changing either dropdown reloads the metrics.
+            Pick a dataset table in the first dropdown — {TABLE_NAMES.length} tables are
+            tracked: {sourceTables.length} data sources, {etlTables.length} ETL tables
+            and {unionTables.length} union {unionTables.length === 1 ? 'table' : 'tables'}.
+            It defaults to <code>{DEFAULT_TABLE}</code>, whose <code>{OVERALL_DATE}</code> metrics
+            load automatically when the dashboard opens; changing either dropdown
+            reloads the metrics.
           </li>
           <li>
             Pick a snapshot date in the second dropdown. Snapshot dates are discovered
-            from the API automatically after the first load; <code>overall</code> is the
-            aggregate view.
+            from the API automatically after the first load; <code>{OVERALL_DATE}</code> is
+            the aggregate view.
           </li>
           <li>
             Check the four quality gauges: Completeness (average % of non-NULL values),
             Validity (% of rows passing all rules), Uniqueness (% of non-duplicate rows)
             and Consistency (average % of domain/range rules passing). A gauge shows
             &quot;No data&quot; when the API has no metrics for that dimension. When a dated
-            snapshot is selected (not <code>overall</code>), each badge also shows the
+            snapshot is selected (not <code>{OVERALL_DATE}</code>), each badge also shows the
             change vs the previous snapshot in parentheses — green for improvement, red
             for regression, yellow for unchanged.
           </li>
@@ -70,15 +77,14 @@ export default function Landing() {
       <div className="card">
         <h3>Available dataset tables</h3>
         <p className="muted">
-          19 tables are available through the API: 9 plain data source tables,
-          9 ETL tables and 1 union table:
+          {TABLE_NAMES.length} tables are available through the API: {sourceTables.length} plain
+          data source tables, {etlTables.length} ETL tables and {unionTables.length} union{' '}
+          {unionTables.length === 1 ? 'table' : 'tables'}:
         </p>
         <ul className="muted" style={{ marginLeft: 20 }}>
-          <li>eonet_event · nifc_fire · ibtracs_cyclone · usgs_earthquake · usgs_volcano</li>
-          <li>openmeteo_flood · gdacs_event · usgs_nwis · avalanche_org</li>
-          <li>eonet_event_etl · nifc_fire_etl · ibtracs_cyclone_etl · usgs_earthquake_etl · usgs_volcano_etl</li>
-          <li>openmeteo_flood_etl · gdacs_event_etl · usgs_nwis_etl · avalanche_org_etl</li>
-          <li>union_etl</li>
+          {[sourceTables, etlTables, unionTables].map((group) => (
+            <li key={group[0]}>{group.join(' · ')}</li>
+          ))}
         </ul>
       </div>
     </>

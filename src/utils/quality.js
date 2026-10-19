@@ -1,3 +1,5 @@
+import { SCORE_THRESHOLDS, SCORE_LABELS } from '../config.js'
+
 // Scores are floored to one decimal: rounding would show 100% for tables
 // that still have (small) defects, e.g. 99.8% -> 100%.
 const floor1 = (value) => Math.floor(value * 10 + 1e-9) / 10
@@ -10,9 +12,13 @@ export function overallScore(metrics) {
 }
 
 export function toneFor(value) {
-  if (value >= 90) return 'ok'
-  if (value >= 75) return 'warn'
+  if (value >= SCORE_THRESHOLDS.good) return 'ok'
+  if (value >= SCORE_THRESHOLDS.warn) return 'warn'
   return 'bad'
+}
+
+export function scoreLabel(value) {
+  return SCORE_LABELS[toneFor(value)]
 }
 
 // Tone for a change indicator: green = improvement, red = regression,

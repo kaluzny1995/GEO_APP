@@ -3,8 +3,7 @@
 //   GET /data-quality/{table_name}/{file_date}
 //   GET /data-quality/{table_name}/file-dates?file_dates=overall
 import { dimensionsFromMetrics, overallScore } from '../utils/quality.js'
-
-const API_BASE = 'http://localhost:8000'
+import { API_BASE, API_TIMEOUT_MS, PROBE_WINDOW_DAYS, OVERALL_DATE } from '../config.js'
 
 const apiDownError = () => {
   const err = new Error('API server is down! Please check the API server.')
@@ -12,7 +11,7 @@ const apiDownError = () => {
   return err
 }
 
-const fetchWithTimeout = async (url, options = {}, timeoutMs = 8000) => {
+const fetchWithTimeout = async (url, options = {}, timeoutMs = API_TIMEOUT_MS) => {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -39,7 +38,6 @@ export async function fetchDataQuality(tableName, fileDate) {
 // rows. The probe response (long-format metric rows for every snapshot) is used
 // to derive both the date list and the quality-score trend, and is cached per
 // table for the session because it can be large.
-const PROBE_WINDOW_DAYS = 120
 const indexCache = new Map()
 
 const isoDaysAgo = (days) => {
@@ -56,7 +54,7 @@ export async function fetchTableIndex(tableName, fileDate) {
   const cached = indexCache.get(tableName)
   if (cached) return cached
 
-  const candidates = new Set(['overall'])
+  const candidates = new Set([OVERALL_DATE])
   if (fileDate) candidates.add(fileDate)
   for (let i = 0; i <= PROBE_WINDOW_DAYS; i += 1) candidates.add(isoDaysAgo(i))
 
@@ -69,7 +67,7 @@ export async function fetchTableIndex(tableName, fileDate) {
   dates.sort()
 
   const trend = dates
-    .filter((date) => date !== 'overall')
+    .filter((date) => date !== OVERALL_DATE)
     .map((date) => {
       const dateRows = rows.filter((r) => r.file_date === date)
       const dimensions = dimensionsFromMetrics(dateRows)

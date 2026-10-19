@@ -1,5 +1,7 @@
 import Badge from './Badge.jsx'
 import { toneFor, changeTone } from '../utils/quality.js'
+import { chartColors } from '../variables/charts.js'
+import { GAUGE_LABELS } from '../config.js'
 
 export default function GaugeCard({ label, value, description, delta, deltaTitle }) {
   const hasData = typeof value === 'number'
@@ -7,8 +9,8 @@ export default function GaugeCard({ label, value, description, delta, deltaTitle
   const deltaText = hasDelta ? ` (${delta > 0 ? '+' : ''}${delta})` : ''
   const deltaClass = hasDelta ? `change-${changeTone(delta)}` : ''
   const tone = hasData ? toneFor(value) : 'neutral'
-  const statusText = !hasData ? 'No data' : tone === 'ok' ? 'Good' : tone === 'warn' ? 'Warning' : 'Critical'
-  const color = tone === 'ok' ? '#00f2c3' : tone === 'warn' ? '#ff8d72' : '#fd5d93'
+  const statusText = hasData ? GAUGE_LABELS[tone] : GAUGE_LABELS.neutral
+  const color = tone === 'ok' ? chartColors.success : tone === 'warn' ? chartColors.warning : chartColors.danger
   const r = 34
   const c = 2 * Math.PI * r
   const off = hasData ? c - (value / 100) * c : c

@@ -6,9 +6,10 @@ import StatCard from '../components/StatCard.jsx'
 import DataQualityTable from '../components/DataQualityTable.jsx'
 import GaugeCard from '../components/GaugeCard.jsx'
 import Badge from '../components/Badge.jsx'
-import { dimensionsFromMetrics, overallScore, toneFor, changeTone } from '../utils/quality.js'
-import { baseOptions, chartColors, passRateBarOptions } from '../variables/charts.js'
+import { dimensionsFromMetrics, overallScore, toneFor, changeTone, scoreLabel } from '../utils/quality.js'
+import { baseOptions, chartColors, passRateBarOptions, radarOptions } from '../variables/charts.js'
 import { fetchDataQuality, fetchTableIndex } from '../api/dataQuality.js'
+import { DEFAULT_TABLE, TABLE_NAMES, OVERALL_DATE, RULE_THRESHOLDS, FAIL_ESTIMATE_ROWS, LOCALE, SCORE_THRESHOLDS } from '../config.js'
 
 // Register Chart.js components at module load time
 ChartJS.register(
@@ -23,36 +24,8 @@ ChartJS.register(
   Legend
 )
 
-const DEFAULT_TABLE = 'avalanche_org'
-
-// 19 tables: 9 plain data source, 9 ETL, 1 union
-const tableNames = [
-  // Plain data source tables (9)
-  'eonet_event',
-  'nifc_fire',
-  'ibtracs_cyclone',
-  'usgs_earthquake',
-  'usgs_volcano',
-  'openmeteo_flood',
-  'gdacs_event',
-  'usgs_nwis',
-  'avalanche_org',
-  // ETL tables (9)
-  'eonet_event_etl',
-  'nifc_fire_etl',
-  'ibtracs_cyclone_etl',
-  'usgs_earthquake_etl',
-  'usgs_volcano_etl',
-  'openmeteo_flood_etl',
-  'gdacs_event_etl',
-  'usgs_nwis_etl',
-  'avalanche_org_etl',
-  // Union table (1)
-  'union_etl',
-]
-
 // Dropdowns render their items alphabetically
-const sortedTableNames = [...tableNames].sort()
+const sortedTableNames = [...TABLE_NAMES].sort()
 
 // Default KPI cards (shown while data loads or when API unavailable)
 const defaultKpis = [
@@ -73,8 +46,8 @@ const metricsToRules = (metrics) => {
       rule: 'Row validity (bad_row_pct)',
       scope: 'table',
       passRate: Math.round(100 - badRow.value),
-      fails: Math.round((badRow.value / 100) * 1000),
-      status: badRow.value >= 10 ? 'fail' : badRow.value >= 1 ? 'warn' : 'pass',
+      fails: Math.round((badRow.value / 100) * FAIL_ESTIMATE_ROWS),
+      status: badRow.value >= RULE_THRESHOLDS.fail ? 'fail' : badRow.value >= RULE_THRESHOLDS.warn ? 'warn' : 'pass',
     })
   }
 
@@ -85,8 +58,8 @@ const metricsToRules = (metrics) => {
       rule: 'Row uniqueness (dup_row_pct)',
       scope: 'table',
       passRate: Math.round(100 - dupRow.value),
-      fails: Math.round((dupRow.value / 100) * 1000),
-      status: dupRow.value >= 10 ? 'fail' : dupRow.value >= 1 ? 'warn' : 'pass',
+      fails: Math.round((dupRow.value / 100) * FAIL_ESTIMATE_ROWS),
+      status: dupRow.value >= RULE_THRESHOLDS.fail ? 'fail' : dupRow.value >= RULE_THRESHOLDS.warn ? 'warn' : 'pass',
     })
   }
 
@@ -96,8 +69,8 @@ const metricsToRules = (metrics) => {
       rule: `Field completeness: ${r.metric.replace('null_pct__', '')}`,
       scope: 'table',
       passRate: Math.round(100 - r.value),
-      fails: Math.round((r.value / 100) * 1000),
-      status: r.value >= 10 ? 'fail' : r.value >= 1 ? 'warn' : 'pass',
+      fails: Math.round((r.value / 100) * FAIL_ESTIMATE_ROWS),
+      status: r.value >= RULE_THRESHOLDS.fail ? 'fail' : r.value >= RULE_THRESHOLDS.warn ? 'warn' : 'pass',
     })
   })
 
@@ -107,8 +80,8 @@ const metricsToRules = (metrics) => {
       rule: `Field validity: ${r.metric.replace('bad_pct__', '')}`,
       scope: 'table',
       passRate: Math.round(100 - r.value),
-      fails: Math.round((r.value / 100) * 1000),
-      status: r.value >= 10 ? 'fail' : r.value >= 1 ? 'warn' : 'pass',
+      fails: Math.round((r.value / 100) * FAIL_ESTIMATE_ROWS),
+      status: r.value >= RULE_THRESHOLDS.fail ? 'fail' : r.value >= RULE_THRESHOLDS.warn ? 'warn' : 'pass',
     })
   })
 
@@ -120,12 +93,12 @@ export default function DataQualityView() {
   // The defaults (avalanche_org / overall) load automatically on mount and
   // every dropdown change triggers a reload.
   const [tableName, setTableName] = useState(DEFAULT_TABLE)
-  const [fileDate, setFileDate] = useState('overall')
+  const [fileDate, setFileDate] = useState(OVERALL_DATE)
   const [requestId, setRequestId] = useState(0)
   const [metrics, setMetrics] = useState([])
   const [rules, setRules] = useState([])
   const [trend, setTrend] = useState([])
-  const [availableDates, setAvailableDates] = useState(['overall'])
+  const [availableDates, setAvailableDates] = useState([OVERALL_DATE])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isApiDown, setIsApiDown] = useState(false)
@@ -171,7 +144,7 @@ export default function DataQualityView() {
           setError('No data-quality snapshots available for this table.')
           return
         }
-        const targetDate = validDates.includes(fileDate) ? fileDate : 'overall'
+        const targetDate = validDates.includes(fileDate) ? fileDate : OVERALL_DATE
         if (targetDate !== fileDate) setFileDate(targetDate)
         await fetchData(tableName, targetDate)
       } catch (err) {
@@ -189,11 +162,11 @@ export default function DataQualityView() {
 
   const handleTableChange = (e) => {
     setTableName(e.target.value)
-    setFileDate('overall')
+    setFileDate(OVERALL_DATE)
     setMetrics([])
     setRules([])
     setTrend([])
-    setAvailableDates(['overall'])
+    setAvailableDates([OVERALL_DATE])
     setIsLoading(true)
   }
 
@@ -211,7 +184,7 @@ export default function DataQualityView() {
   const showScore = !isLoading && !error
 
   const previousSnapshot = useMemo(() => {
-    if (!fileDate || fileDate === 'overall') return null
+    if (!fileDate || fileDate === OVERALL_DATE) return null
     const idx = trend.findIndex((t) => t.date === fileDate)
     return idx > 0 ? trend[idx - 1] : null
   }, [trend, fileDate])
@@ -231,7 +204,7 @@ export default function DataQualityView() {
       if (typeof current !== 'number' || typeof prev !== 'number') return null
       let d = current - prev
       if (pct && Math.abs(d) < 0.05) d = 0
-      const text = ` (${d > 0 ? '+' : ''}${pct ? d.toFixed(1) : d.toLocaleString('en-US')})`
+      const text = ` (${d > 0 ? '+' : ''}${pct ? d.toFixed(1) : d.toLocaleString(LOCALE)})`
       return { text, tone: changeTone(d, invert) }
     }
 
@@ -243,7 +216,7 @@ export default function DataQualityView() {
       {
         id: 'rows',
         label: 'Rows scanned',
-        value: typeof totalRecords === 'number' ? totalRecords.toLocaleString('en-US') : '—',
+        value: typeof totalRecords === 'number' ? totalRecords.toLocaleString(LOCALE) : '—',
         delta: `${metrics.length} metrics`,
         change: rowsChange?.text,
         changeTone: rowsChange?.tone,
@@ -270,7 +243,7 @@ export default function DataQualityView() {
       {
         id: 'datasets',
         label: 'Datasets',
-        value: tableNames.length,
+        value: TABLE_NAMES.length,
         delta: 'tracked tables',
         up: true,
       },
@@ -334,7 +307,7 @@ export default function DataQualityView() {
       label: `${tableName} quality score`,
       data: trendData,
       borderColor: chartColors.primary,
-      backgroundColor: 'rgba(225,78,202,0.2)',
+      backgroundColor: chartColors.primarySoft,
       tension: 0.4,
       fill: true,
       pointBackgroundColor: chartColors.primary,
@@ -352,7 +325,11 @@ export default function DataQualityView() {
       label: 'Pass %',
       data: passRates,
       backgroundColor: rules.map((r) =>
-        r.passRate >= 90 ? chartColors.success : r.passRate >= 75 ? chartColors.warning : chartColors.danger
+        r.passRate >= SCORE_THRESHOLDS.good
+          ? chartColors.success
+          : r.passRate >= SCORE_THRESHOLDS.warn
+            ? chartColors.warning
+            : chartColors.danger
       ),
       borderRadius: 6,
     }],
@@ -383,7 +360,7 @@ export default function DataQualityView() {
         dimensionScores.uniqueness ?? null,
         dimensionScores.consistency ?? null,
       ],
-      backgroundColor: 'rgba(225,78,202,0.2)',
+      backgroundColor: chartColors.primarySoft,
       borderColor: chartColors.primary,
       pointBackgroundColor: chartColors.primary,
       pointBorderColor: '#fff',
@@ -403,7 +380,7 @@ export default function DataQualityView() {
               <>
                 <strong style={{ color: '#fff' }}>{score}%</strong>{' '}
                 <Badge tone={toneFor(score)}>
-                  {score >= 90 ? 'Healthy' : score >= 75 ? 'Needs attention' : 'Critical'}
+                  {scoreLabel(score)}
                 </Badge>
               </>
             ) : (
@@ -481,24 +458,7 @@ export default function DataQualityView() {
               <h3>Radar: Quality dimensions</h3>
               <p className="sub muted">Four key metrics for {fileDate}</p>
               <div style={{ height: 240 }}>
-                <Radar
-                  data={radarData}
-                  options={{
-                    ...baseOptions(),
-                    scales: {
-                      r: {
-                        min: 0,
-                        max: 100,
-                        grid: { color: chartColors.grid },
-                        pointLabels: { color: '#d4d4e0' },
-                        ticks: { color: chartColors.tick, stepSize: 20, backdropColor: 'transparent' },
-                      },
-                    },
-                    elements: {
-                      line: { borderWidth: 2 },
-                    },
-                  }}
-                />
+                <Radar data={radarData} options={radarOptions()} />
               </div>
             </div>
           </div>
@@ -528,7 +488,10 @@ export default function DataQualityView() {
             </div>
             <div className="card">
               <h3>Quality gauges</h3>
-              <p className="sub muted">≥90 good · 75–89 warning · {'<75'} critical</p>
+              <p className="sub muted">
+                ≥{SCORE_THRESHOLDS.good} good · {SCORE_THRESHOLDS.warn}–{SCORE_THRESHOLDS.good - 1} warning · {'<'}
+                {SCORE_THRESHOLDS.warn} critical
+              </p>
               <div className="gauges">
                 {gauges.map((g) => (
                   <GaugeCard key={g.id} {...g} value={g.value} />

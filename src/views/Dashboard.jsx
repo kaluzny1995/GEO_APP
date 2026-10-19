@@ -5,7 +5,8 @@ import QualityCharts from '../components/QualityCharts.jsx'
 import GaugeCard from '../components/GaugeCard.jsx'
 import Badge from '../components/Badge.jsx'
 import { datasets, kpis, gaugesFor } from '../data/mockData.js'
-import { overallScore } from '../utils/quality.js'
+import { overallScore, toneFor, scoreLabel } from '../utils/quality.js'
+import { SCORE_THRESHOLDS } from '../config.js'
 
 export default function Dashboard({ datasetId, onDatasetChange }) {
   const dataset = useMemo(
@@ -21,9 +22,7 @@ export default function Dashboard({ datasetId, onDatasetChange }) {
           <h2>Data-quality overview</h2>
           <p className="muted">
             {dataset.name} · overall <strong style={{ color: '#fff' }}>{score}%</strong>{' '}
-            <Badge tone={score >= 90 ? 'ok' : score >= 75 ? 'warn' : 'bad'}>
-              {score >= 90 ? 'Healthy' : score >= 75 ? 'Needs attention' : 'Critical'}
-            </Badge>
+            <Badge tone={toneFor(score)}>{scoreLabel(score)}</Badge>
           </p>
         </div>
         <select value={dataset.id} onChange={(e) => onDatasetChange(e.target.value)}>
@@ -45,7 +44,10 @@ export default function Dashboard({ datasetId, onDatasetChange }) {
         <QualityCharts dataset={dataset} />
         <div className="card">
           <h3>Quality gauges</h3>
-          <p className="sub muted">≥90 good · 75–89 warning · &lt;75 critical</p>
+          <p className="sub muted">
+            ≥{SCORE_THRESHOLDS.good} good · {SCORE_THRESHOLDS.warn}–{SCORE_THRESHOLDS.good - 1} warning · &lt;
+            {SCORE_THRESHOLDS.warn} critical
+          </p>
           <div className="gauges">
             {gaugesFor(dataset).map((g) => (
               <GaugeCard key={g.id} {...g} />
