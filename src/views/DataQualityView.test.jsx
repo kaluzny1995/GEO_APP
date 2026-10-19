@@ -1,19 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, fireEvent, waitFor } from '@testing-library/react'
 import DataQualityView from './DataQualityView.jsx'
 import { clearIndexCache } from '../api/dataQuality.js'
-
-const { navigateMock, paramsRef } = vi.hoisted(() => ({
-  navigateMock: vi.fn(),
-  paramsRef: { current: { tableName: 'eonet_event', fileDate: '2024-10-15' } },
-}))
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
   return {
     ...actual,
-    useParams: () => paramsRef.current,
-    useNavigate: () => navigateMock,
     NavLink: ({ children, to, className, ...props }) => (
       <a
         href={typeof to === 'string' ? to : '#'}
@@ -50,23 +43,47 @@ const mockFetch = vi.fn()
 
 describe('DataQualityView', () => {
   beforeEach(() => {
-    navigateMock.mockClear()
     clearIndexCache()
-    paramsRef.current = { tableName: 'eonet_event', fileDate: '2024-10-15' }
     mockFetch.mockReset()
     mockFetch.mockImplementation(defaultFetchImpl)
     globalThis.fetch = mockFetch
   })
+
+  const selects = () => screen.getAllByRole('combobox')
+  const selectTable = (value) => fireEvent.change(selects()[0], { target: { value } })
+  const selectDate = (value) => fireEvent.change(selects()[1], { target: { value } })
 
   const renderLoaded = async () => {
     render(<DataQualityView />)
     return screen.findByText('Quality gauges')
   }
 
+  it('loads the default table and overall snapshot on mount', async () => {
+    render(<DataQualityView />)
+    expect(await screen.findByText('Quality gauges')).toBeInTheDocument()
+    expect(selects()[0]).toHaveValue('avalanche_org')
+    expect(selects()[1]).toHaveValue('overall')
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/data-quality/avalanche_org/overall'),
+      expect.anything()
+    )
+  })
+
+  it('loads metrics when the table dropdown changes', async () => {
+    render(<DataQualityView />)
+    await screen.findByText('Quality gauges')
+    selectTable('eonet_event')
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/data-quality/eonet_event/overall'),
+      expect.anything()
+    ))
+  })
+
   it('renders the title, dataset name and date', async () => {
     await renderLoaded()
     expect(screen.getByText('Data Quality Metrics')).toBeInTheDocument()
-    expect(screen.getAllByText('eonet_event').length).toBeGreaterThan(0)
+    expect(screen.getByText(/avalanche_org · overall/)).toBeInTheDocument()
+    expect(screen.getAllByText('avalanche_org').length).toBeGreaterThan(0)
     expect(screen.getAllByText('2024-10-15').length).toBeGreaterThan(0)
   })
 
@@ -77,9 +94,8 @@ describe('DataQualityView', () => {
 
   it('renders dataset selector with all 19 tables', async () => {
     await renderLoaded()
-    const selects = screen.getAllByRole('combobox')
-    expect(selects).toHaveLength(2)
-    const tableSelect = selects[0]
+    expect(selects()).toHaveLength(2)
+    const tableSelect = selects()[0]
     expect(within(tableSelect).getAllByRole('option')).toHaveLength(19)
     const names = within(tableSelect).getAllByRole('option').map((o) => o.value)
     expect(names).toEqual([...names].sort())
@@ -91,7 +107,7 @@ describe('DataQualityView', () => {
 
   it('renders date selector with available snapshots', async () => {
     await renderLoaded()
-    const dateSelect = screen.getAllByRole('combobox')[1]
+    const dateSelect = selects()[1]
     const values = within(dateSelect).getAllByRole('option').map((o) => o.value)
     expect(values).toEqual(['2024-10-15', 'overall'])
   })
@@ -102,8 +118,9 @@ describe('DataQualityView', () => {
       expect(screen.getByText(label)).toBeInTheDocument()
     }
     expect(screen.getByText('92%')).toBeInTheDocument()
-    expect(screen.getAllByText('97%')).toHaveLength(2)
-    expect(screen.getByText('99%')).toBeInTheDocument()
+    expect(screen.getByText('97%')).toBeInTheDocument()
+    expect(screen.getByText('96.5%')).toBeInTheDocument()
+    expect(screen.getByText('98.5%')).toBeInTheDocument()
   })
 
   it('places the rule table before the gauges in the layout', async () => {
@@ -133,10 +150,11 @@ describe('DataQualityView', () => {
           ...rowsWithBadRow('overall', 8),
         ])
       }
-      return respondWith(rowsWithBadRow('2024-10-15', 8))
+      return respondWith(rowsWithBadRow(target.slice(target.lastIndexOf('/') + 1), 8))
     })
     await renderLoaded()
-    expect(screen.getByText('(+2)')).toHaveClass('change-ok')
+    selectDate('2024-10-15')
+    expect(await screen.findByText('(+2)')).toHaveClass('change-ok')
     expect(screen.getAllByText('(0)')).toHaveLength(5)
     expect(screen.getAllByText('(0)').every((el) => el.classList.contains('change-warn'))).toBe(true)
     expect(screen.getAllByTitle('vs previous snapshot (2024-10-14)')).toHaveLength(4)
@@ -154,7 +172,6 @@ describe('DataQualityView', () => {
   })
 
   it('does not show change badges for the overall snapshot', async () => {
-    paramsRef.current = { tableName: 'eonet_event', fileDate: 'overall' }
     await renderLoaded()
     expect(screen.getAllByText('Good')).toHaveLength(4)
     expect(screen.queryByText(/\(\+/)).not.toBeInTheDocument()
@@ -170,14 +187,11 @@ describe('DataQualityView', () => {
   })
 
   it('shows No data for dimensions with no underlying metrics', async () => {
-    mockFetch.mockImplementation(async (url) => {
-      const target = String(url)
+    mockFetch.mockImplementation(async () => {
       const rows = metricRows('2024-10-15').filter((r) => !r.metric.startsWith('bad_pct__'))
-      if (target.includes('/file-dates')) return respondWith(rows)
       return respondWith(rows)
     })
-    render(<DataQualityView />)
-    await screen.findByText('Quality gauges')
+    await renderLoaded()
     expect(screen.getByText('No data')).toBeInTheDocument()
     expect(screen.queryByText('0%')).not.toBeInTheDocument()
   })
@@ -220,11 +234,10 @@ describe('DataQualityView', () => {
       }
       return respondWith(rowsWithBadRow('2026-09-02', 10))
     })
-    render(<DataQualityView />)
-    await screen.findByText('Quality gauges')
+    await renderLoaded()
     const lineData = JSON.parse(screen.getByTestId('line-chart').getAttribute('data-data'))
     expect(lineData.labels).toEqual(['2026-09-01', '2026-09-02'])
-    expect(lineData.datasets[0].data).toEqual([98, 96])
+    expect(lineData.datasets[0].data).toEqual([98, 95.5])
   })
 
   it('renders Radar chart with the four quality dimensions', async () => {
@@ -232,7 +245,7 @@ describe('DataQualityView', () => {
     expect(screen.getByText('Radar: Quality dimensions')).toBeInTheDocument()
     const radarData = JSON.parse(screen.getByTestId('radar-chart').getAttribute('data-data'))
     expect(radarData.labels).toEqual(['Completeness', 'Validity', 'Uniqueness', 'Consistency'])
-    expect(radarData.datasets[0].data).toEqual([97, 92, 97, 99])
+    expect(radarData.datasets[0].data).toEqual([96.5, 92, 97, 98.5])
   })
 
   it('renders Rule pass % chart', async () => {
@@ -241,6 +254,10 @@ describe('DataQualityView', () => {
     const barData = JSON.parse(screen.getByTestId('bar-chart').getAttribute('data-data'))
     expect(barData.labels).toEqual(['R-101', 'R-102', 'R-200', 'R-201', 'R-300', 'R-301'])
     expect(barData.datasets[0].data).toEqual([92, 97, 95, 98, 99, 98])
+
+    const barOptions = JSON.parse(screen.getByTestId('bar-chart').getAttribute('data-options'))
+    expect(barOptions.scales.y.min).toBe(90)
+    expect(barOptions.scales.y.max).toBe(100)
   })
 
   it('renders Rule status chart', async () => {
@@ -292,15 +309,6 @@ describe('DataQualityView', () => {
     expect(await screen.findByText('No data-quality snapshots available for this table.')).toBeInTheDocument()
   })
 
-  it('defaults to avalanche_org when no table param is present', async () => {
-    paramsRef.current = { fileDate: 'overall' }
-    await renderLoaded()
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/data-quality/avalanche_org'),
-      expect.anything()
-    )
-  })
-
   it('discovers all snapshot dates for the table', async () => {
     mockFetch.mockImplementation(async (url) => {
       const target = String(url)
@@ -314,15 +322,12 @@ describe('DataQualityView', () => {
       }
       return respondWith(metricRows('overall'))
     })
-    render(<DataQualityView />)
-    await screen.findByText('Quality gauges')
-    const dateSelect = screen.getAllByRole('combobox')[1]
-    const values = within(dateSelect).getAllByRole('option').map((o) => o.value)
+    await renderLoaded()
+    const values = within(selects()[1]).getAllByRole('option').map((o) => o.value)
     expect(values).toEqual(['2026-09-01', '2026-09-02', '2026-09-03', 'overall'])
   })
 
   it('fetches the selected snapshot via the per-date endpoint', async () => {
-    paramsRef.current = { tableName: 'eonet_event', fileDate: '2026-10-09' }
     mockFetch.mockImplementation(async (url) => {
       const target = String(url)
       if (target.includes('/file-dates')) {
@@ -331,10 +336,11 @@ describe('DataQualityView', () => {
       return respondWith(metricRows(target.slice(target.lastIndexOf('/') + 1)))
     })
     await renderLoaded()
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/data-quality/eonet_event/2026-10-09'),
+    selectDate('2026-10-09')
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/data-quality/avalanche_org/2026-10-09'),
       expect.anything()
-    )
+    ))
   })
 
   it('caches the discovered date list per table (single probe request)', async () => {

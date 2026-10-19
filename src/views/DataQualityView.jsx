@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParams, NavLink, useNavigate } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, RadialLinearScale, Tooltip, Legend } from 'chart.js'
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2'
 import StatCard from '../components/StatCard.jsx'
@@ -7,7 +7,7 @@ import DataQualityTable from '../components/DataQualityTable.jsx'
 import GaugeCard from '../components/GaugeCard.jsx'
 import Badge from '../components/Badge.jsx'
 import { dimensionsFromMetrics, overallScore, toneFor, changeTone } from '../utils/quality.js'
-import { baseOptions, chartColors } from '../variables/charts.js'
+import { baseOptions, chartColors, passRateBarOptions } from '../variables/charts.js'
 import { fetchDataQuality, fetchTableIndex } from '../api/dataQuality.js'
 
 // Register Chart.js components at module load time
@@ -116,17 +116,19 @@ const metricsToRules = (metrics) => {
 }
 
 export default function DataQualityView() {
-  const { tableName, fileDate } = useParams()
-  const navigate = useNavigate()
+  // Selections live in component state; the URL always stays /data-quality.
+  // The defaults (avalanche_org / overall) load automatically on mount and
+  // every dropdown change triggers a reload.
+  const [tableName, setTableName] = useState(DEFAULT_TABLE)
+  const [fileDate, setFileDate] = useState('overall')
+  const [requestId, setRequestId] = useState(0)
   const [metrics, setMetrics] = useState([])
   const [rules, setRules] = useState([])
   const [trend, setTrend] = useState([])
-  const [availableDates, setAvailableDates] = useState([])
+  const [availableDates, setAvailableDates] = useState(['overall'])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isApiDown, setIsApiDown] = useState(false)
-
-  const resolvedTableName = tableName || DEFAULT_TABLE
 
   const applyError = useCallback((err) => {
     setError(err.message)
@@ -152,33 +154,61 @@ export default function DataQualityView() {
   }, [applyError])
 
   useEffect(() => {
-    const loadIndex = async () => {
+    let cancelled = false
+
+    const load = async () => {
+      setIsLoading(true)
+      setError(null)
+      setIsApiDown(false)
       try {
-        const index = await fetchTableIndex(resolvedTableName, fileDate)
+        const index = await fetchTableIndex(tableName, fileDate)
+        if (cancelled) return
         const validDates = Array.isArray(index.dates) ? index.dates.filter((d) => typeof d === 'string' && d) : []
-        setAvailableDates(validDates)
         setTrend(Array.isArray(index.trend) ? index.trend : [])
+        setAvailableDates(validDates)
         if (validDates.length === 0) {
           setIsLoading(false)
           setError('No data-quality snapshots available for this table.')
           return
         }
-        const targetDate = validDates.includes(fileDate) ? fileDate : validDates[0]
-        await fetchData(resolvedTableName, targetDate)
-        if (targetDate !== fileDate) {
-          navigate(`/admin/data-quality/${resolvedTableName}/${targetDate}`)
-        }
+        const targetDate = validDates.includes(fileDate) ? fileDate : 'overall'
+        if (targetDate !== fileDate) setFileDate(targetDate)
+        await fetchData(tableName, targetDate)
       } catch (err) {
+        if (cancelled) return
         setAvailableDates([])
+        setTrend([])
         setIsLoading(false)
         applyError(err)
       }
     }
-    loadIndex()
-  }, [resolvedTableName, fileDate, navigate, fetchData, applyError])
+    load()
+
+    return () => { cancelled = true }
+  }, [requestId, tableName, fileDate, fetchData, applyError])
+
+  const handleTableChange = (e) => {
+    setTableName(e.target.value)
+    setFileDate('overall')
+    setMetrics([])
+    setRules([])
+    setTrend([])
+    setAvailableDates(['overall'])
+    setIsLoading(true)
+  }
+
+  const handleDateChange = (e) => {
+    setFileDate(e.target.value)
+    setIsLoading(true)
+  }
+
+  const retry = () => {
+    setRequestId((n) => n + 1)
+  }
 
   const dimensionScores = dimensionsFromMetrics(metrics)
   const score = overallScore(dimensionScores)
+  const showScore = !isLoading && !error
 
   const previousSnapshot = useMemo(() => {
     if (!fileDate || fileDate === 'overall') return null
@@ -251,7 +281,9 @@ export default function DataQualityView() {
     if (!previousSnapshot) return null
     const current = dimensionScores[key]
     const prev = previousSnapshot.dimensions?.[key]
-    return typeof current === 'number' && typeof prev === 'number' ? current - prev : null
+    if (typeof current !== 'number' || typeof prev !== 'number') return null
+    const diff = Math.round((current - prev) * 10) / 10
+    return diff === 0 ? 0 : diff
   }
 
   const deltaTitle = previousSnapshot ? `vs previous snapshot (${previousSnapshot.date})` : undefined
@@ -299,7 +331,7 @@ export default function DataQualityView() {
   const lineData = {
     labels: trendLabels,
     datasets: [{
-      label: `${resolvedTableName} quality score`,
+      label: `${tableName} quality score`,
       data: trendData,
       borderColor: chartColors.primary,
       backgroundColor: 'rgba(225,78,202,0.2)',
@@ -312,17 +344,21 @@ export default function DataQualityView() {
     }],
   }
 
+  const passRates = rules.map((r) => r.passRate)
+
   const barData = {
     labels: rules.map((r) => r.id),
     datasets: [{
       label: 'Pass %',
-      data: rules.map((r) => r.passRate),
+      data: passRates,
       backgroundColor: rules.map((r) =>
         r.passRate >= 90 ? chartColors.success : r.passRate >= 75 ? chartColors.warning : chartColors.danger
       ),
       borderRadius: 6,
     }],
   }
+
+  const barOptions = passRateBarOptions(passRates)
 
   const doughnutData = {
     labels: ['Pass', 'Warn', 'Fail'],
@@ -362,24 +398,26 @@ export default function DataQualityView() {
         <div>
           <h2>Data Quality Metrics</h2>
           <p className="muted">
-            {resolvedTableName} · {fileDate || '—'}{' '}
-            {isLoading ? <span className="muted">—</span> : (
-              <strong style={{ color: '#fff' }}>{score}%</strong>
-            )}{' '}
-            {isLoading ? <span className="muted">—</span> : (
-              <Badge tone={toneFor(score)}>
-                {score >= 90 ? 'Healthy' : score >= 75 ? 'Needs attention' : 'Critical'}
-              </Badge>
+            {tableName} · {fileDate}{' '}
+            {showScore ? (
+              <>
+                <strong style={{ color: '#fff' }}>{score}%</strong>{' '}
+                <Badge tone={toneFor(score)}>
+                  {score >= 90 ? 'Healthy' : score >= 75 ? 'Needs attention' : 'Critical'}
+                </Badge>
+              </>
+            ) : (
+              <span className="muted">—</span>
             )}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <NavLink to="/admin/overview" className="btn btn-sm btn-outline-secondary">
+          <NavLink to="/overview" className="btn btn-sm btn-outline-secondary">
             ← Back to Overview
           </NavLink>
           <select
-            value={resolvedTableName}
-            onChange={(e) => navigate(`/admin/data-quality/${e.target.value}/overall`)}
+            value={tableName}
+            onChange={handleTableChange}
             style={{ minWidth: 220 }}
           >
             {sortedTableNames.map((table) => (
@@ -387,8 +425,8 @@ export default function DataQualityView() {
             ))}
           </select>
           <select
-            value={fileDate || ''}
-            onChange={(e) => navigate(`/admin/data-quality/${resolvedTableName}/${e.target.value}`)}
+            value={fileDate}
+            onChange={handleDateChange}
             style={{ minWidth: 140 }}
             disabled={!availableDates.length || isLoading}
           >
@@ -402,7 +440,7 @@ export default function DataQualityView() {
       {error && isApiDown && (
         <div className="alert-error" role="alert" style={{ marginTop: 16 }}>
           <span>{error}</span>
-          <button className="btn btn-sm" onClick={() => window.location.reload()}>
+          <button className="btn btn-sm" onClick={retry}>
             Retry
           </button>
         </div>
@@ -412,7 +450,7 @@ export default function DataQualityView() {
         <div className="card" style={{ marginTop: 16 }}>
           <h3>Error</h3>
           <p className="muted">{error}</p>
-          <button className="btn btn-sm" onClick={() => window.location.reload()}>
+          <button className="btn btn-sm" onClick={retry}>
             Retry
           </button>
         </div>
@@ -470,7 +508,7 @@ export default function DataQualityView() {
               <h3>Rule pass %</h3>
               <p className="sub muted">Per-rule bar chart for {fileDate}</p>
               <div style={{ height: 280 }}>
-                <Bar data={barData} options={baseOptions()} />
+                <Bar data={barData} options={barOptions} />
               </div>
             </div>
             <div className="card">
@@ -485,7 +523,7 @@ export default function DataQualityView() {
           <div className="grid two" style={{ marginTop: 16 }}>
             <div className="card table-card">
               <h3>Data-quality table</h3>
-              <p className="sub muted">Rule-level checks for {resolvedTableName} on {fileDate}</p>
+              <p className="sub muted">Rule-level checks for {tableName} on {fileDate}</p>
               <DataQualityTable rows={rules} />
             </div>
             <div className="card">

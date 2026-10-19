@@ -9,6 +9,20 @@ export const chartColors = {
   tick: '#9a9a9a',
 }
 
+// Y-axis for pass-rate bar charts: zoom in on the weakest value (rounded down
+// to a 5% step, never above 95) so small differences between high scores stay
+// visible instead of every bar looking like a full 100% block.
+export function passRateBarOptions(values = []) {
+  const weakest = values.length ? Math.min(...values) : 100
+  const min = Math.min(95, Math.max(0, Math.floor(weakest / 5) * 5))
+  return baseOptions({
+    scales: {
+      x: { grid: { color: chartColors.grid }, ticks: { color: chartColors.tick } },
+      y: { min, max: 100, grid: { color: chartColors.grid }, ticks: { color: chartColors.tick } },
+    },
+  })
+}
+
 export function baseOptions(extra = {}) {
   return {
     responsive: true,

@@ -59,7 +59,7 @@ describe('Dashboard', () => {
 
   it('shows correct overall score badge', () => {
     render(<Dashboard datasetId="geo-places" onDatasetChange={mockOnDatasetChange} />)
-    // geo-places: (92+88+97+81)/4 = 89.5 -> 90 -> Healthy
-    expect(screen.getByText('Healthy')).toBeInTheDocument()
+    // geo-places: (92+88+97+81)/4 = 89.5 -> Needs attention
+    expect(screen.getByText('Needs attention')).toBeInTheDocument()
   })
 })

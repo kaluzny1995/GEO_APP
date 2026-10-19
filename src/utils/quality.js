@@ -1,8 +1,12 @@
+// Scores are floored to one decimal: rounding would show 100% for tables
+// that still have (small) defects, e.g. 99.8% -> 100%.
+const floor1 = (value) => Math.floor(value * 10 + 1e-9) / 10
+
 export function overallScore(metrics) {
   if (!metrics || typeof metrics !== 'object') return 0
   const vals = Object.values(metrics).filter((v) => typeof v === 'number')
   if (!vals.length) return 0
-  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
+  return floor1(vals.reduce((a, b) => a + b, 0) / vals.length)
 }
 
 export function toneFor(value) {
@@ -27,20 +31,20 @@ export function dimensionsFromMetrics(rows) {
   const metrics = Array.isArray(rows) ? rows.filter((r) => r && typeof r.metric === 'string') : []
 
   const nullPcts = metrics.filter((r) => r.metric.startsWith('null_pct__')).map((r) => r.value)
-  const completeness = nullPcts.length ? Math.round(100 - mean(nullPcts)) : null
+  const completeness = nullPcts.length ? floor1(100 - mean(nullPcts)) : null
 
   const badRow = metrics.find((r) => r.metric === 'bad_row_pct')
-  const validity = badRow ? Math.round(100 - badRow.value) : null
+  const validity = badRow ? floor1(100 - badRow.value) : null
 
   const dupRow = metrics.find((r) => r.metric === 'dup_row_pct')
-  const uniqueness = dupRow ? Math.round(100 - dupRow.value) : null
+  const uniqueness = dupRow ? floor1(100 - dupRow.value) : null
 
   // Consistency = domain/range/logic rules (all bad_pct__ checks except
   // blank checks, which are completeness/validity concerns).
   const badPcts = metrics
     .filter((r) => r.metric.startsWith('bad_pct__') && !r.metric.includes('not_blank__'))
     .map((r) => r.value)
-  const consistency = badPcts.length ? Math.round(100 - mean(badPcts)) : null
+  const consistency = badPcts.length ? floor1(100 - mean(badPcts)) : null
 
   return { completeness, validity, uniqueness, consistency }
 }

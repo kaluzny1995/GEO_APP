@@ -10,7 +10,7 @@ import {
   Legend,
 } from 'chart.js'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
-import { baseOptions, chartColors } from '../variables/charts.js'
+import { baseOptions, chartColors, passRateBarOptions } from '../variables/charts.js'
 
 // Register Chart.js components at module load time
 ChartJS.register(
@@ -43,12 +43,14 @@ export default function QualityCharts({ dataset }) {
     ],
   }
 
+  const passRates = dataset.rules.map((r) => r.passRate)
+
   const barData = {
     labels: dataset.rules.map((r) => r.id),
     datasets: [
       {
         label: 'Pass %',
-        data: dataset.rules.map((r) => r.passRate),
+        data: passRates,
         backgroundColor: dataset.rules.map((r) =>
           r.passRate >= 90 ? chartColors.success : r.passRate >= 75 ? chartColors.warning : chartColors.danger
         ),
@@ -85,7 +87,7 @@ export default function QualityCharts({ dataset }) {
           <h3>Rule pass %</h3>
           <p className="sub muted">Per-rule bar chart</p>
           <div style={{ height: 220 }}>
-            <Bar data={barData} options={baseOptions()} />
+            <Bar data={barData} options={passRateBarOptions(passRates)} />
           </div>
         </div>
         <div className="card">

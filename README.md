@@ -6,15 +6,16 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
 
 ## Features
 
-- `/admin/overview` — welcome page with what GEO_APP is for, step-by-step
+- `/overview` — welcome page with what GEO_APP is for, step-by-step
   instructions for reading the dashboard, and a button linking to it
-- `/admin/data-quality/:tableName/:fileDate` — data-quality dashboard for a table
-  and snapshot: KPI cards, quality gauges, line/radar/bar/doughnut charts (the
-  trend line covers all discovered snapshot dates), and a sortable/filterable
-  rule-level table. Table and snapshot selectors are in the
-  toolbar, listed alphabetically, and default to `avalanche_org`. The snapshot
-  list is discovered from the API (last 120 days + `overall`) and cached per
-  table.
+- `/data-quality` — data-quality dashboard for a table and snapshot: KPI cards,
+  quality gauges, line/radar/bar/doughnut charts (the trend line covers all
+  discovered snapshot dates), and a sortable/filterable rule-level table. Table
+  and snapshot selectors are in the toolbar, listed alphabetically, and default
+  to `avalanche_org` / `overall`, which load automatically when the view opens.
+  The selection lives in component state (the URL always stays `/data-quality`);
+  changing either dropdown reloads the metrics. The snapshot list is discovered
+  from the API (last 120 days + `overall`) and cached per table.
 - Data comes from **GEO_API** at `http://localhost:8000` — see
   [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for the endpoint contract,
   long-format metrics and dimension mapping.

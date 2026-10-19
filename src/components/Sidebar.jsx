@@ -24,13 +24,6 @@ export default function Sidebar() {
               {r.name}
             </NavLink>
           ))}
-        <NavLink
-          to="/admin/data-quality/avalanche_org/overall"
-          className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-        >
-          <span className="dot" />
-          Data Quality
-        </NavLink>
       </nav>
       <div className="foot">
         Black Dashboard UI

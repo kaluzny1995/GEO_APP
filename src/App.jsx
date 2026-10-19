@@ -25,8 +25,8 @@ export default function App() {
                 />
               )
             })}
-            <Route path="/" element={<Navigate to="/admin/overview" replace />} />
-            <Route path="*" element={<Navigate to="/admin/overview" replace />} />
+            <Route path="/" element={<Navigate to="/overview" replace />} />
+            <Route path="*" element={<Navigate to="/overview" replace />} />
           </Routes>
         </main>
         <Footer />

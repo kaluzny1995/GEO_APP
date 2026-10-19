@@ -5,8 +5,8 @@ import Sidebar from './Sidebar.jsx'
 
 vi.mock('../routes.js', () => ({
   default: [
-    { path: '/overview', name: 'Overview', layout: '/admin' },
-    { path: '/data-quality/:tableName/:fileDate', name: 'Data Quality', layout: '/admin' },
+    { path: '/overview', name: 'Overview', layout: '' },
+    { path: '/data-quality', name: 'Data Quality', layout: '' },
   ],
 }))
 
@@ -30,10 +30,11 @@ describe('Sidebar', () => {
     expect(screen.getByText('Overview')).toBeInTheDocument()
   })
 
-  it('renders Data Quality nav link', () => {
+  it('renders Data Quality nav link pointing to /data-quality', () => {
     renderSidebar()
     const navLinks = screen.getAllByRole('link', { name: /Data Quality/i })
     expect(navLinks).toHaveLength(1)
+    expect(navLinks[0]).toHaveAttribute('href', '/data-quality')
   })
 
   it('renders footer text', () => {

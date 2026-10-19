@@ -26,7 +26,14 @@ describe('Landing', () => {
   it('renders a link button to the Data Quality dashboard', () => {
     renderLanding()
     const link = screen.getByRole('link', { name: /open data quality dashboard/i })
-    expect(link).toHaveAttribute('href', '/admin/data-quality/avalanche_org/overall')
+    expect(link).toHaveAttribute('href', '/data-quality')
+  })
+
+  it('explains that defaults load automatically and dropdowns reload metrics', () => {
+    renderLanding()
+    expect(screen.getByText(/load automatically when the dashboard opens/i)).toBeInTheDocument()
+    expect(screen.getByText(/changing either dropdown reloads the metrics/i)).toBeInTheDocument()
+    expect(screen.getByText('/data-quality')).toBeInTheDocument()
   })
 
   it('renders instructions for the Data Quality dashboard', () => {
@@ -36,6 +43,7 @@ describe('Landing', () => {
     expect(screen.getByText(/check the four quality gauges/i)).toBeInTheDocument()
     expect(screen.getByText(/read the scores/i)).toBeInTheDocument()
     expect(screen.getByText(/the trend line covers all available snapshot dates/i)).toBeInTheDocument()
+    expect(screen.getByText(/change vs the previous snapshot in parentheses/i)).toBeInTheDocument()
   })
 
   it('lists available datasets', () => {

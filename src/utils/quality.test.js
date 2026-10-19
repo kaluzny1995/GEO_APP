@@ -16,9 +16,11 @@ describe('quality utils', () => {
       expect(overallScore({ completeness: 85 })).toBe(85)
     })
 
-    it('rounds correctly', () => {
+    it('rounds down to one decimal (never overstates)', () => {
       const metrics = { a: 10, b: 20, c: 30 }
       expect(overallScore(metrics)).toBe(20)
+      expect(overallScore({ a: 99.8, b: 100 })).toBe(99.9)
+      expect(overallScore({ a: 90, b: 89 })).toBe(89.5)
     })
   })
 
@@ -34,12 +36,21 @@ describe('quality utils', () => {
     ]
 
     it('computes all four DAMA dimensions from long-format rows', () => {
+      // null mean 3.5 -> 96.5; domain mean 1.5 -> 98.5 (one decimal, floored)
       expect(dimensionsFromMetrics(rows)).toEqual({
-        completeness: 97,
+        completeness: 96.5,
         validity: 92,
         uniqueness: 97,
-        consistency: 99,
+        consistency: 98.5,
       })
+    })
+
+    it('floors to one decimal so small defects are visible', () => {
+      const nearlyClean = [
+        { metric: 'null_pct__a', value: 0.4 },
+        { metric: 'null_pct__b', value: 0 },
+      ]
+      expect(dimensionsFromMetrics(nearlyClean).completeness).toBe(99.8)
     })
 
     it('includes domain/range rules but excludes blank checks for consistency', () => {

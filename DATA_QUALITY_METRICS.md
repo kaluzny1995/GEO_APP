@@ -17,8 +17,10 @@ Base URL: `http://localhost:8000`
 | `GET /data-quality/{table_name}/file-dates?file_dates=overall,2024-10-15` | Metrics for the requested snapshot dates |
 
 There is no endpoint that enumerates available dates. The app probes a rolling
-window of the **last 120 days** (plus `overall` and the current route date) with
-a single `file_dates` query and keeps the `file_date` values that return rows.
+window of the **last 120 days** (plus `overall` and the currently selected date)
+with a single `file_dates` query and keeps the `file_date` values that return
+rows. The probe runs when the view loads (for the default selection) and is
+re-run when the user switches tables.
 The result is cached per table for the session, so switching snapshots does not
 re-probe. As of Oct 2026, all 19 tables have daily snapshots from `2026-09-01`
 to `2026-10-09` plus `overall`.
@@ -85,6 +87,11 @@ shows **No data** instead of a misleading 0%.
 
 Overall score = mean of the four dimension scores (metrics with no data are
 ignored).
+
+Scores are **floored to one decimal** (never rounded up), so 100% appears only
+when every underlying check is clean. Before this, small defects (e.g. a 0.6%
+NULL rate averaged over 20 fields -> 99.8%) were rounded to 100% and looked
+inconsistent with the rule table.
 
 When a dated snapshot is selected (i.e. not `overall`), each gauge badge and
 KPI card (rows scanned, pass count, fail rate) shows the change vs the previous
