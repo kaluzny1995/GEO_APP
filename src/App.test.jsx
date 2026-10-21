@@ -60,9 +60,9 @@ describe('App', () => {
   it('renders sidebar, navbar, and content', () => {
     renderWithRouter(<App />)
     expect(screen.getByText('GEO_APP')).toBeInTheDocument()
-    expect(screen.getByText('GEO_APP · Data Quality')).toBeInTheDocument()
+    expect(screen.getByText('GEO_APP · Data Quality & Quantity')).toBeInTheDocument()
     expect(
-      screen.getByText('Monitor completeness, validity, uniqueness and consistency across 19 geographic dataset tables')
+      screen.getByText('Monitor data quality and event quantity across 19 geographic dataset tables')
     ).toBeInTheDocument()
     expect(screen.getByText('Landing page')).toBeInTheDocument()
     expect(screen.getByText('Footer')).toBeInTheDocument()

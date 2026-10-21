@@ -114,10 +114,11 @@ select, input {
 
 .grid { display: grid; gap: 16px; }
 .grid.stats { grid-template-columns: repeat(4, 1fr); }
+.grid.stats.stats-5 { grid-template-columns: repeat(5, 1fr); }
 .grid.two { grid-template-columns: 1.5fr 1fr; }
 .grid.three { grid-template-columns: repeat(3, 1fr); }
 @media (max-width: 1024px) {
-  .grid.stats { grid-template-columns: repeat(2, 1fr); }
+  .grid.stats, .grid.stats.stats-5 { grid-template-columns: repeat(2, 1fr); }
   .grid.two, .grid.three { grid-template-columns: 1fr; }
   .sidebar { display: none; }
 }
@@ -166,6 +167,14 @@ select, input {
 .change-bad { color: var(--bd-danger); }
 
 .table-wrap { overflow-x: auto; }
+.level-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  margin-right: 6px; vertical-align: middle;
+}
+.heatmap td, .heatmap th { text-align: right; white-space: nowrap; }
+.heatmap thead th, .heatmap tbody th, .heatmap tfoot th { text-align: left; }
+.heatmap tbody th { font-weight: 600; }
+.heatmap tfoot td, .heatmap tfoot th { border-top: 1px solid var(--bd-line); }
 table { width: 100%; border-collapse: collapse; font-size: 14px; color: var(--bd-ink); }
 th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--bd-line); }
 th { color: var(--bd-ink); font-weight: 700; }
@@ -198,6 +207,23 @@ tbody tr:hover td { background: rgba(255,255,255,0.03); }
   color: #fff; font-weight: 600; cursor: pointer; text-decoration: none;
 }
 .btn.ghost { background: transparent; }
+.btn:hover { filter: brightness(1.08); }
+.btn.btn-quality { background: linear-gradient(135deg, var(--bd-primary), #7b2ff7); }
+.btn.btn-categories { background: linear-gradient(135deg, var(--bd-info), #3358f4); }
+.btn.btn-locations { background: linear-gradient(135deg, #00b894, #007f6d); }
+.btn.btn-categories,
+.btn.btn-locations {
+  background-size: 200% 200%;
+  background-position: 0% 50%;
+  transition: background-position 0.35s ease, filter 0.2s ease;
+}
+.btn.btn-categories:hover,
+.btn.btn-locations:hover { background-position: 100% 50%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn.btn-categories,
+  .btn.btn-locations { transition: none; }
+}
 
 .toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
 .toolbar h2 { margin: 0; }

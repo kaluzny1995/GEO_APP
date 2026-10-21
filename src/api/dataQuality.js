@@ -3,34 +3,13 @@
 //   GET /data-quality/{table_name}/{file_date}
 //   GET /data-quality/{table_name}/file-dates?file_dates=overall
 import { dimensionsFromMetrics, overallScore } from '../utils/quality.js'
-import { API_BASE, API_TIMEOUT_MS, PROBE_WINDOW_DAYS, OVERALL_DATE } from '../config.js'
-
-const apiDownError = () => {
-  const err = new Error('API server is down! Please check the API server.')
-  err.isConnectionError = true
-  return err
-}
-
-const fetchWithTimeout = async (url, options = {}, timeoutMs = API_TIMEOUT_MS) => {
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
-
-  try {
-    const response = await fetch(url, { ...options, signal: controller.signal })
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-    return response.json()
-  } catch (err) {
-    // Network-level failures (unreachable host) and timeouts mean the API is down
-    if (err.name === 'AbortError') throw apiDownError()
-    if (err instanceof TypeError) throw apiDownError()
-    throw err
-  } finally {
-    clearTimeout(timeoutId)
-  }
-}
+import { apiUrl, fetchWithTimeout } from './client.js'
+import { PROBE_WINDOW_DAYS, OVERALL_DATE } from '../config.js'
 
 export async function fetchDataQuality(tableName, fileDate) {
-  return fetchWithTimeout(`${API_BASE}/data-quality/${encodeURIComponent(tableName)}/${encodeURIComponent(fileDate)}`)
+  return fetchWithTimeout(
+    apiUrl(`/data-quality/${encodeURIComponent(tableName)}/${encodeURIComponent(fileDate)}`)
+  )
 }
 
 // The API has no "list dates" endpoint, so the app probes a rolling window of
@@ -59,7 +38,9 @@ export async function fetchTableIndex(tableName, fileDate) {
   for (let i = 0; i <= PROBE_WINDOW_DAYS; i += 1) candidates.add(isoDaysAgo(i))
 
   const rows = await fetchWithTimeout(
-    `${API_BASE}/data-quality/${encodeURIComponent(tableName)}/file-dates?file_dates=${[...candidates].map(encodeURIComponent).join(',')}`
+    apiUrl(
+      `/data-quality/${encodeURIComponent(tableName)}/file-dates?file_dates=${[...candidates].map(encodeURIComponent).join(',')}`
+    )
   )
   if (!Array.isArray(rows)) return { dates: [], trend: [] }
 

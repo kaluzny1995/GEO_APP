@@ -2,7 +2,7 @@
   "name": "geo_app",
   "private": true,
   "version": "0.1.0",
-  "description": "GEO_APP — React data visualization app for data-quality tables, charts, gauges and badges. UI based on Black Dashboard React (MIT, Creative Tim), ported to Vite.",
+  "description": "GEO_APP — React data visualization app for data quality & quantity tables, charts, gauges and badges. UI based on Black Dashboard React (MIT, Creative Tim), ported to Vite.",
   "type": "module",
   "scripts": {
     "dev": "vite",

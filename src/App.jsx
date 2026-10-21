@@ -10,8 +10,8 @@ export default function App() {
       <Sidebar />
       <div className="main-panel">
         <TopNavbar
-          title="GEO_APP · Data Quality"
-          subtitle="Monitor completeness, validity, uniqueness and consistency across 19 geographic dataset tables"
+          title="GEO_APP · Data Quality & Quantity"
+          subtitle="Monitor data quality and event quantity across 19 geographic dataset tables"
         />
         <main className="content">
           <Routes>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { passRateBarOptions } from './charts.js'
+import { heatTextColor, passRateBarOptions } from './charts.js'
 
 describe('passRateBarOptions', () => {
   it('starts the y-axis just below the weakest rule', () => {
@@ -19,5 +19,18 @@ describe('passRateBarOptions', () => {
 
   it('defaults to a 95-100 axis for empty input', () => {
     expect(passRateBarOptions([]).scales.y.min).toBe(95)
+  })
+})
+
+describe('heatTextColor', () => {
+  it('blends from a readable gray to the accent color', () => {
+    expect(heatTextColor('#00f2c3', 0)).toBe('rgb(138, 138, 154)')
+    expect(heatTextColor('#00f2c3', 1)).toBe('rgb(0, 242, 195)')
+    expect(heatTextColor('#e14eca', 0.5)).toBe('rgb(182, 108, 178)')
+  })
+
+  it('clamps intensity to the 0-1 range', () => {
+    expect(heatTextColor('#fd5d93', -1)).toBe('rgb(138, 138, 154)')
+    expect(heatTextColor('#fd5d93', 2)).toBe('rgb(253, 93, 147)')
   })
 })

@@ -11,6 +11,24 @@ export const chartColors = {
   label: '#d4d4e0',
 }
 
+// Colors for the four shared-scale danger levels.
+export const dangerColors = {
+  low: chartColors.success,
+  medium: '#ffd166',
+  high: chartColors.warning,
+  extreme: chartColors.danger,
+}
+
+// Heatmap text color: blends from a light gray (readable on the dark theme,
+// even for the smallest non-zero values) to the bright accent color.
+export function heatTextColor(hex, intensity) {
+  const t = Math.max(0, Math.min(1, Number(intensity) || 0))
+  const base = [138, 138, 154]
+  const accent = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+  const [r, g, b] = base.map((channel, i) => Math.round(channel + (accent[i] - channel) * t))
+  return `rgb(${r}, ${g}, ${b})`
+}
+
 // Y-axis for pass-rate bar charts: zoom in on the weakest value (rounded down
 // to a 5% step, never above 95) so small differences between high scores stay
 // visible instead of every bar looking like a full 100% block.

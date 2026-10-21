@@ -21,8 +21,8 @@ describe('Sidebar', () => {
   it('renders brand logo and name', () => {
     renderSidebar()
     expect(screen.getByText('GEO_APP')).toBeInTheDocument()
-    // "Data Quality" appears in small text under brand
-    expect(screen.getAllByText('Data Quality')).toHaveLength(2)
+    expect(screen.getByText('Data Quality & Quantity')).toBeInTheDocument()
+    expect(screen.getAllByText('Data Quality')).toHaveLength(1)
   })
 
   it('renders Overview nav link', () => {

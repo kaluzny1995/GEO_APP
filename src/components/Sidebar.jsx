@@ -8,7 +8,7 @@ export default function Sidebar() {
         <div className="logo">G</div>
         <div>
           <h2>GEO_APP</h2>
-          <small>Data Quality</small>
+          <small>Data Quality & Quantity</small>
         </div>
       </div>
       <nav className="nav">

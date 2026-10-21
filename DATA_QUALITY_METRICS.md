@@ -127,7 +127,7 @@ Derived from the underlying metric percentage:
 
 ## Datasets
 
-19 tables are tracked in the UI (`tableNames` in `src/views/DataQualityView.jsx`):
+19 tables are tracked in the UI (`TABLE_NAMES` in `src/config.js`):
 
 - Data sources: `eonet_event`, `nifc_fire`, `ibtracs_cyclone`, `usgs_earthquake`,
   `usgs_volcano`, `openmeteo_flood`, `gdacs_event`, `usgs_nwis`, `avalanche_org`

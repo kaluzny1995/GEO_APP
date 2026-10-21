@@ -11,11 +11,17 @@ export default function Landing() {
       <div className="toolbar">
         <div>
           <h2>GEO_APP</h2>
-          <p className="muted">Geographic data-quality overview</p>
+          <p className="muted">Geographic data quality & quantity overview</p>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <NavLink to="/data-quality" className="btn btn-sm">
-            Open Data Quality dashboard →
+        <div className="btn-group" role="group" aria-label="Dashboards">
+          <NavLink to="/data-quality" className="btn btn-sm btn-quality">
+            Data Quality
+          </NavLink>
+          <NavLink to="/event-categories" className="btn btn-sm btn-categories">
+            Event Categories
+          </NavLink>
+          <NavLink to="/event-locations" className="btn btn-sm btn-locations">
+            Event Locations
           </NavLink>
         </div>
       </div>
@@ -23,9 +29,9 @@ export default function Landing() {
       <div className="card">
         <h3>What is GEO_APP for?</h3>
         <p className="muted">
-          GEO_APP is a React front-end for exploring the quality of geographic datasets
-          (events, wildfires, cyclones, earthquakes, volcanoes, floods, rivers and
-          avalanches). It connects to the GEO_API to fetch data-quality metrics for each
+          GEO_APP is a React front-end for exploring data quality and event quantity
+          across geographic datasets (events, wildfires, cyclones, earthquakes,
+          volcanoes, floods, rivers and avalanches). It connects to the GEO_API to fetch data-quality metrics for each
           dataset table and snapshot via the /data-quality/&#123;table_name&#125;/&#123;file_date&#125;
           endpoint — snapshot dates are discovered with a file-dates probe — so you can
           see at a glance which datasets are healthy, which need attention, and which
@@ -37,8 +43,8 @@ export default function Landing() {
         <h3>How to read the Data Quality dashboard</h3>
         <ol className="muted" style={{ marginLeft: 20 }}>
           <li>
-            Open the dashboard with the button above or the &quot;Data Quality&quot; link in the
-            sidebar — the address is <code>/data-quality</code>.
+            Open the Data Quality dashboard with its button above or the &quot;Data Quality&quot;
+            link in the sidebar — the address is <code>/data-quality</code>.
           </li>
           <li>
             Pick a dataset table in the first dropdown — {TABLE_NAMES.length} tables are
@@ -72,6 +78,22 @@ export default function Landing() {
             to find failing checks.
           </li>
         </ol>
+      </div>
+
+      <div className="card">
+        <h3>Event counts</h3>
+        <p className="muted">
+          The <strong>Event Categories</strong> tab groups <code>union_etl</code> events by
+          category/subcategory and the <strong>Event Locations</strong> tab groups them by
+          country/state/province — both broken down by source_name/subsource_name. Every
+          row shows the overall count and its share of all events, plus the count and
+          share for each of the four danger levels (low, medium, high, extreme). Events
+          rated none or no_rating are included in overall counts only. The Event
+          Categories tab also shows a category-by-source heatmap, and the Event
+          Locations tab shows a source-by-region heatmap (USA, Canada, South and
+          Central America, Europe, Asia, Africa, Oceania, Waters/Oceans and
+          Antarctica), both with counts and shares.
+        </p>
       </div>
 
       <div className="card">
