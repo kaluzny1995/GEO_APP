@@ -8,8 +8,8 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
 
 - `/overview` — welcome page with what GEO_APP is for, step-by-step
   instructions for reading the dashboard, a glossary of data-quality rules and
-  their meanings, and a button group linking to all three dashboards (Data
-  Quality, Event Categories, Event Locations)
+  their meanings, and a button group linking to all four dashboards (Data
+  Quality, Data Quantity, Event Categories, Event Locations)
 - `/data-quality` — data-quality dashboard for a table and snapshot: KPI cards,
   quality gauges, line/radar/bar/doughnut charts (the trend line covers all
   discovered snapshot dates), and a sortable/filterable rule-level table. Table
@@ -18,6 +18,12 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
   The selection lives in component state (the URL always stays `/data-quality`);
   changing either dropdown reloads the metrics. The snapshot list is discovered
   from the API (last 120 days + `overall`) and cached per table.
+- `/data-quantity` — row-quantity flow diagram for the nine plain source tables,
+  their nine ETL tables and `union_etl`. The snapshot selector defaults to the
+  latest dated snapshot (falling back to `overall`) and reloads all 19
+  `total_records` counts. Each plain → ETL arrow reports rows filtered out (or
+  how many more rows the ETL table has), and every ETL table is connected to the
+  union card with an SVG flow curve.
 - `/event-categories` — event counts by event category/subcategory, broken down
   by source/subsource: overall count and share of all events, plus the count and
   share for each of the four danger levels (low, medium, high, extreme); count
@@ -56,7 +62,9 @@ environment variable.
 The app expects GEO_API running at `http://localhost:8000` (the base URL is set
 in `src/config.js`). Data-quality snapshots come from the `/data-quality/...`
 endpoints; see [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for their
-contract.
+contract. The Data Quantity view reads `total_records` from the same endpoint
+for all 19 tables and discovers snapshots by probing the union table's
+`file-dates` endpoint.
 
 Event counts come from two long-format endpoints:
 
@@ -91,8 +99,8 @@ npm run lint     # ESLint
 ## Testing
 
 The full automated test inventory, including every test case and manual browser
-checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 26
-test files and 186 passing tests. `npm test` runs the suite once; use
+checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 30
+test files and 207 passing tests. `npm test` runs the suite once; use
 `npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
 
 ## Project structure
@@ -109,13 +117,15 @@ GEO_APP/
 │   ├── main.jsx             # BrowserRouter + Bootstrap + theme CSS
 │   ├── App.jsx              # Admin shell (Sidebar + TopNavbar + Routes)
 │   ├── config.js            # app config (API, tables, thresholds, labels, regions)
-│   ├── routes.js            # route table (overview, data quality, event tabs)
+│   ├── routes.js            # route table (overview, quality, quantity, event tabs)
 │   ├── api/client.js        # shared fetch + timeout / API-down handling
 │   ├── api/dataQuality.js   # GEO_API data-quality client (date discovery)
+│   ├── api/dataQuantity.js  # parallel total_records fetcher for the flow diagram
 │   ├── api/eventCounts.js   # GEO_API event-count endpoints
-│   ├── views/               # Landing, DataQualityView, EventCountsView, …
-│   ├── components/          # Sidebar, GaugeCard, tables, DownloadMenu, matrices, …
+│   ├── views/               # Landing, DataQualityView, DataQuantityView, …
+│   ├── components/          # Sidebar, GaugeCard, tables, DownloadMenu, diagram, …
 │   ├── utils/quality.js     # overallScore / toneFor / changeTone helpers
+│   ├── utils/dataQuantity.js # quantity extraction, flow pairs, difference labels
 │   ├── utils/eventCounts.js # event-count grouping, region lookup, matrices
 │   ├── utils/tableExport.js # CSV/JSON/XML/TXT serializers and file downloads
 │   ├── variables/charts.js  # chart colors and base options

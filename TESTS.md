@@ -5,8 +5,8 @@ updated whenever the test suite or test counts change.
 
 ## Current status
 
-- **Test files:** 26
-- **Tests:** 186 passing
+- **Test files:** 30
+- **Tests:** 207 passing
 - **Framework:** Vitest 2.1.9 + jsdom
 - **Libraries:** React Testing Library, `@testing-library/user-event`,
   `@testing-library/jest-dom`
@@ -47,17 +47,18 @@ npx vitest run --reporter=verbose
 
 | Area | Test files | Tests |
 |------|-----------:|------:|
-| App shell and routing | 3 | 14 |
-| Overview page | 1 | 8 |
+| App shell and routing | 3 | 16 |
+| Overview page | 1 | 9 |
 | Data quality views and charts | 6 | 65 |
+| Data quantity flow | 4 | 18 |
 | Event categories and locations | 4 | 20 |
 | Shared UI components | 5 | 19 |
 | Utilities, API clients and visual config | 7 | 60 |
-| **Total** | **26** | **186** |
+| **Total** | **30** | **207** |
 
-## App shell and routing (14)
+## App shell and routing (16)
 
-### `src/App.test.jsx` (4)
+### `src/App.test.jsx` (5)
 
 Covers the admin shell, route matching, default redirect and unknown-route
 redirect.
@@ -65,15 +66,17 @@ redirect.
 - renders sidebar, navbar, and content
 - navigates to overview by default
 - navigates to data quality view when route matches
+- navigates to data quantity view when route matches
 - redirects unknown routes to overview
 
-### `src/components/Sidebar.test.jsx` (4)
+### `src/components/Sidebar.test.jsx` (5)
 
 Covers branding, navigation links and footer content in the sidebar.
 
 - renders brand logo and name
 - renders Overview nav link
 - renders Data Quality nav link pointing to `/data-quality`
+- renders Data Quantity nav link pointing to `/data-quantity`
 - renders footer text
 
 ### `src/test/consoleError.test.jsx` (6)
@@ -88,19 +91,20 @@ future-flag warnings and no uncaught errors during the initial render.
 - should not log React Router future flag warnings
 - should not log any uncaught errors during initial render
 
-## Overview page (8)
+## Overview page (9)
 
-### `src/views/Landing.test.jsx` (8)
+### `src/views/Landing.test.jsx` (9)
 
 Covers the landing copy, dashboard links, quality-rule glossary, workflow
 instructions, event-count explanation and dataset inventory.
 
 - renders title and description
 - renders what is GEO_APP section
-- renders dashboard buttons for quality, categories and locations
+- renders dashboard buttons for quality, quantity, categories and locations
 - lists the data quality rules and what they mean
 - explains that defaults load automatically and dropdowns reload metrics
 - renders instructions for the Data Quality dashboard
+- renders instructions for the Data Quantity dashboard
 - describes the event count tabs
 - lists available datasets
 
@@ -202,6 +206,49 @@ Covers the legacy charts view header, selector and chart rendering.
 - renders dataset selector
 - calls onDatasetChange when selecting different dataset
 - renders QualityCharts
+
+## Data quantity flow (18)
+
+### `src/views/DataQuantityView.test.jsx` (6)
+
+Covers latest-snapshot defaulting, sorted date selection, flow labels, retry
+behavior and empty/API-down states.
+
+- defaults to the latest dated snapshot and fetches all table counts
+- lists the available dates in sorted order and reloads on selection
+- renders filtered-out, added and union row labels
+- shows an error and retries the request
+- shows an API-down alert when the API is unreachable
+- shows a message when no snapshots are available
+
+### `src/components/DataQuantityDiagram.test.jsx` (4)
+
+Covers plain/ETL cards, filtered/added/even arrow badges, SVG union connectors
+and missing-count rendering.
+
+- renders every plain and ETL table plus the union total
+- labels filtered, added and even rows on the plain-to-ETL links
+- draws one curved union connector per ETL table
+- shows missing values when counts are unavailable
+
+### `src/utils/dataQuantity.test.js` (5)
+
+Covers total extraction, locale formatting, differences, flow-pair derivation
+and missing values.
+
+- formats quantities with the configured locale and handles missing values
+- extracts total_records from long-format metric rows
+- sums known quantities and ignores missing values
+- computes differences and labels only when both counts are known
+- builds one flow row per configured plain/ETL pair
+
+### `src/api/dataQuantity.test.js` (3)
+
+Covers parallel per-table requests and error propagation.
+
+- fetches total_records for every requested table in parallel
+- returns null when a table has no total_records metric
+- propagates request failures
 
 ## Event categories and locations (20)
 
@@ -410,3 +457,10 @@ changes:
   the download icon, confirm all four formats appear with file icons, and
   confirm selecting a format downloads the current table (including the
   transposed matrix orientation after using the transpose toggle).
+- Data Quantity flow: open `/data-quantity` in headless Chrome, confirm the
+  latest snapshot loads all nine plain/ETL rows, missing counts render as an
+  italic red “no data” with a “No count” badge, filtered rows show badges, nine
+  SVG curves reach the union card, and the diagram scrolls horizontally without
+  overflowing the page on narrow screens.
+- Data Quantity dates: switch the snapshot selector and confirm all 19 counts,
+  badges and the union total reload; test the Retry path with the API stopped.

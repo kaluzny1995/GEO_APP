@@ -47,6 +47,12 @@ vi.mock('./views/DataQualityView.jsx', () => ({
   },
 }))
 
+vi.mock('./views/DataQuantityView.jsx', () => ({
+  default: function DataQuantityView() {
+    return <div className="data-quantity-view">Data Quantity View</div>
+  },
+}))
+
 const renderWithRouter = (component) => {
   return render(<BrowserRouter future={ROUTER_FUTURE_FLAGS}>{component}</BrowserRouter>)
 }
@@ -78,6 +84,13 @@ describe('App', () => {
     goTo('/data-quality')
     renderWithRouter(<App />)
     expect(screen.getByText('Data Quality View')).toBeInTheDocument()
+    expect(screen.queryByText('Landing page')).not.toBeInTheDocument()
+  })
+
+  it('navigates to data quantity view when route matches', () => {
+    goTo('/data-quantity')
+    renderWithRouter(<App />)
+    expect(screen.getByText('Data Quantity View')).toBeInTheDocument()
     expect(screen.queryByText('Landing page')).not.toBeInTheDocument()
   })
 

@@ -11,6 +11,7 @@ export const APP_OVERVIEW_SUBTITLE = 'Geographic data quality & quantity overvie
 export const ROUTES = {
   overview: '/overview',
   dataQuality: '/data-quality',
+  dataQuantity: '/data-quantity',
   eventCategories: '/event-categories',
   eventLocations: '/event-locations',
 }
@@ -48,6 +49,7 @@ export const OVERALL_DATE = 'overall'
 export const DEFAULT_TABLE = 'avalanche_org'
 
 // 19 tables: 9 plain data source tables, 9 ETL tables, 1 union table.
+export const ETL_SUFFIX = '_etl'
 export const UNION_TABLE = 'union_etl'
 export const TABLE_NAMES = [
   // Plain data source tables (9)
@@ -73,6 +75,18 @@ export const TABLE_NAMES = [
   // Union table (1)
   UNION_TABLE,
 ]
+
+// Plain → ETL pairs shown in the Data Quantity flow diagram.
+export const PLAIN_TABLE_NAMES = TABLE_NAMES.filter(
+  (table) => table !== UNION_TABLE && !table.endsWith(ETL_SUFFIX)
+)
+export const ETL_TABLE_NAMES = TABLE_NAMES.filter(
+  (table) => table !== UNION_TABLE && table.endsWith(ETL_SUFFIX)
+)
+export const TABLE_FLOW = PLAIN_TABLE_NAMES.map((plain) => ({
+  plain,
+  etl: `${plain}${ETL_SUFFIX}`,
+}))
 
 export const APP_SUBTITLE = `Monitor data quality and event quantity across ${TABLE_NAMES.length} geographic dataset tables`
 

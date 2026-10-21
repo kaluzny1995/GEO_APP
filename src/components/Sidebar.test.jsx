@@ -8,6 +8,7 @@ vi.mock('../routes.js', () => ({
   default: [
     { path: '/overview', name: 'Overview', layout: '' },
     { path: '/data-quality', name: 'Data Quality', layout: '' },
+    { path: '/data-quantity', name: 'Data Quantity', layout: '' },
   ],
 }))
 
@@ -37,6 +38,12 @@ describe('Sidebar', () => {
     const navLinks = screen.getAllByRole('link', { name: /Data Quality/i })
     expect(navLinks).toHaveLength(1)
     expect(navLinks[0]).toHaveAttribute('href', '/data-quality')
+  })
+
+  it('renders Data Quantity nav link pointing to /data-quantity', () => {
+    renderSidebar()
+    const navLink = screen.getByRole('link', { name: 'Data Quantity' })
+    expect(navLink).toHaveAttribute('href', '/data-quantity')
   })
 
   it('renders footer text', () => {

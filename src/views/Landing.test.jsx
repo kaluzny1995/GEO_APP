@@ -24,14 +24,16 @@ describe('Landing', () => {
     expect(screen.getByText(/GEO_APP is a React front-end for exploring data quality and event quantity/i)).toBeInTheDocument()
   })
 
-  it('renders dashboard buttons for quality, categories and locations', () => {
+  it('renders dashboard buttons for quality, quantity, categories and locations', () => {
     renderLanding()
     const group = screen.getByRole('group', { name: /dashboards/i })
     const quality = within(group).getByRole('link', { name: 'Data Quality' })
+    const quantity = within(group).getByRole('link', { name: 'Data Quantity' })
     const categories = within(group).getByRole('link', { name: 'Event Categories' })
     const locations = within(group).getByRole('link', { name: 'Event Locations' })
 
     expect(quality).toHaveAttribute('href', '/data-quality')
+    expect(quantity).toHaveAttribute('href', '/data-quantity')
     expect(categories).toHaveAttribute('href', '/event-categories')
     expect(locations).toHaveAttribute('href', '/event-locations')
   })
@@ -64,6 +66,15 @@ describe('Landing', () => {
     expect(screen.getByText(/read the scores/i)).toBeInTheDocument()
     expect(screen.getByText(/the trend line covers all available snapshot dates/i)).toBeInTheDocument()
     expect(screen.getByText(/change vs the previous snapshot in parentheses/i)).toBeInTheDocument()
+  })
+
+  it('renders instructions for the Data Quantity dashboard', () => {
+    renderLanding()
+    expect(screen.getByText('How to read the Data Quantity dashboard')).toBeInTheDocument()
+    expect(screen.getByText('/data-quantity')).toBeInTheDocument()
+    expect(screen.getByText(/starts on the latest dated snapshot/i)).toBeInTheDocument()
+    expect(screen.getByText(/shows how many rows were filtered out/i)).toBeInTheDocument()
+    expect(screen.getByText(/every ETL table feeds the union card/i)).toBeInTheDocument()
   })
 
   it('describes the event count tabs', () => {

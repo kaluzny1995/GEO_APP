@@ -41,7 +41,7 @@ describe('EventCountsView', () => {
 
     expect(await screen.findByRole('heading', { name: 'Event Categories' })).toBeInTheDocument()
     expect(screen.getByText(/counts events by category and subcategory for each source and subsource/i)).toBeInTheDocument()
-    expect(screen.getByText(/totals are shown overall and for the four danger levels/i)).toBeInTheDocument()
+    expect(screen.queryByText(/totals are shown overall and for the four danger levels/i)).not.toBeInTheDocument()
     expect(fetchEventCountsByCategory).toHaveBeenCalledTimes(1)
     expect(screen.getByText('Total events')).toBeInTheDocument()
     expect(screen.getByText('Total events').parentElement).toHaveTextContent('100')
@@ -62,7 +62,7 @@ describe('EventCountsView', () => {
 
     expect(await screen.findByRole('heading', { name: 'Event Locations' })).toBeInTheDocument()
     expect(screen.getByText(/counts events by country and state\/province for each source and subsource/i)).toBeInTheDocument()
-    expect(screen.getByText(/totals are shown overall and for the four danger levels/i)).toBeInTheDocument()
+    expect(screen.queryByText(/totals are shown overall and for the four danger levels/i)).not.toBeInTheDocument()
     expect(fetchEventCountsByLocation).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('columnheader', { name: 'Country' })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'State / province' })).toBeInTheDocument()

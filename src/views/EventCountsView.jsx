@@ -30,7 +30,7 @@ const capitalize = (value) => value.charAt(0).toUpperCase() + value.slice(1)
 const DIMENSIONS = {
   category: {
     title: 'Event Categories',
-    subtitle: `The ${UNION_TABLE} dataset counts events by category and subcategory for each source and subsource. Totals are shown overall and for the four danger levels.`,
+    subtitle: `The ${UNION_TABLE} dataset counts events by category and subcategory for each source and subsource.`,
     tableTitle: 'Categories by source',
     tableSub:
       'Each row combines source, subsource, event category and subcategory. Danger-level cells show the count and its share of the row total.',
@@ -38,7 +38,7 @@ const DIMENSIONS = {
   },
   location: {
     title: 'Event Locations',
-    subtitle: `The ${UNION_TABLE} dataset counts events by country and state/province for each source and subsource. Totals are shown overall and for the four danger levels.`,
+    subtitle: `The ${UNION_TABLE} dataset counts events by country and state/province for each source and subsource.`,
     tableTitle: 'Locations by source',
     tableSub:
       'Each row combines source, subsource, country and state/province. Danger-level cells show the count and its share of the row total.',

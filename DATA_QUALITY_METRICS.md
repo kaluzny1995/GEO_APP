@@ -199,6 +199,28 @@ Derived from the underlying metric percentage:
 | 1–9.99    | warn   | 90–99%         |
 | ≥ 10      | fail   | < 90%          |
 
+## Data Quantity Flow (frontend)
+
+The `/data-quantity` view reuses `GET /data-quality/{table_name}/{file_date}` and
+reads the `total_records` metric for all 19 tables. Snapshot dates are discovered
+from `union_etl`'s `file-dates` probe; the view defaults to the latest dated
+snapshot and falls back to `overall` when only the aggregate is available. The
+19 count requests run in parallel.
+
+For each configured plain → ETL pair (`TABLE_FLOW` in `src/config.js`):
+
+- `difference = plain total_records − ETL total_records`
+- a positive difference is shown as “N filtered out”
+- zero is shown as “No rows filtered”
+- a negative difference is shown as “N more in ETL” (the overall aggregate can
+  contain more ETL rows than the plain snapshot, for example EONET)
+- if either count is missing, the arrow badge says “No count” and the missing
+  card(s) show an italic red “no data” value
+
+All ETL tables are connected to the `union_etl` card in the diagram; the curves
+are illustrative and do not imply per-table additive totals. The union card
+shows `union_etl`'s own `total_records` for the same snapshot.
+
 ## Datasets
 
 19 tables are tracked in the UI (`TABLE_NAMES` in `src/config.js`):

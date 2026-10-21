@@ -5,7 +5,9 @@ import {
   APP_OVERVIEW_SUBTITLE,
   DANGER_LEVELS,
   DEFAULT_TABLE,
+  ETL_TABLE_NAMES,
   OVERALL_DATE,
+  PLAIN_TABLE_NAMES,
   QUALITY_METRICS,
   REGION_ORDER,
   ROUTES,
@@ -16,8 +18,8 @@ import {
   UNRATED_DANGER_RATINGS,
 } from '../config.js'
 
-const sourceTables = TABLE_NAMES.filter((t) => t !== UNION_TABLE && !t.endsWith('_etl'))
-const etlTables = TABLE_NAMES.filter((t) => t !== UNION_TABLE && t.endsWith('_etl'))
+const sourceTables = PLAIN_TABLE_NAMES
+const etlTables = ETL_TABLE_NAMES
 const unionTables = TABLE_NAMES.filter((t) => t === UNION_TABLE)
 const regionList = `${REGION_ORDER.slice(0, -1).join(', ')} and ${REGION_ORDER[REGION_ORDER.length - 1]}`
 
@@ -68,6 +70,9 @@ export default function Landing() {
         <div className="btn-group" role="group" aria-label="Dashboards">
           <NavLink to={ROUTES.dataQuality} className="btn btn-sm btn-quality">
             Data Quality
+          </NavLink>
+          <NavLink to={ROUTES.dataQuantity} className="btn btn-sm btn-quantity">
+            Data Quantity
           </NavLink>
           <NavLink to={ROUTES.eventCategories} className="btn btn-sm btn-categories">
             Event Categories
@@ -129,6 +134,34 @@ export default function Landing() {
             snapshot dates, the radar shows the four dimensions, the bar/doughnut charts
             summarize rule results, and the rule-level table can be sorted and filtered
             to find failing checks.
+          </li>
+        </ol>
+      </div>
+
+      <div className="card overview-card">
+        <h3>How to read the Data Quantity dashboard</h3>
+        <p className="muted">
+          The Data Quantity tab diagrams how rows move from the {PLAIN_TABLE_NAMES.length} plain
+          source tables through their {ETL_TABLE_NAMES.length} ETL tables into{' '}
+          <code>{UNION_TABLE}</code>.
+        </p>
+        <ol className="muted" style={{ marginLeft: 20 }}>
+          <li>
+            Open the Data Quantity dashboard with its button above or the &quot;Data Quantity&quot;
+            link in the sidebar — the address is <code>{ROUTES.dataQuantity}</code>.
+          </li>
+          <li>
+            Pick a snapshot date. The dashboard starts on the latest dated snapshot and
+            falls back to <code>{OVERALL_DATE}</code> when only aggregate data is available.
+          </li>
+          <li>
+            Each row compares a plain table with its ETL table. The badge on the arrow
+            shows how many rows were filtered out; if the ETL table has more rows than the
+            selected plain snapshot, it reports how many more.
+          </li>
+          <li>
+            Every ETL table feeds the union card, which shows the union row count for the
+            selected snapshot.
           </li>
         </ol>
       </div>
