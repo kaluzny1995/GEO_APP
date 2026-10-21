@@ -1,14 +1,15 @@
-import { SCORE_THRESHOLDS, SCORE_LABELS } from '../config.js'
+import { QUALITY_METRICS, SCORE_DECIMALS, SCORE_THRESHOLDS, SCORE_LABELS } from '../config.js'
 
-// Scores are floored to one decimal: rounding would show 100% for tables
+// Scores are floored (never rounded up): rounding would show 100% for tables
 // that still have (small) defects, e.g. 99.8% -> 100%.
-const floor1 = (value) => Math.floor(value * 10 + 1e-9) / 10
+const SCORE_FACTOR = 10 ** SCORE_DECIMALS
+const floorScore = (value) => Math.floor(value * SCORE_FACTOR + 1e-9) / SCORE_FACTOR
 
 export function overallScore(metrics) {
   if (!metrics || typeof metrics !== 'object') return 0
   const vals = Object.values(metrics).filter((v) => typeof v === 'number')
   if (!vals.length) return 0
-  return floor1(vals.reduce((a, b) => a + b, 0) / vals.length)
+  return floorScore(vals.reduce((a, b) => a + b, 0) / vals.length)
 }
 
 export function toneFor(value) {
@@ -36,21 +37,27 @@ const mean = (values) => values.reduce((a, b) => a + b, 0) / values.length
 export function dimensionsFromMetrics(rows) {
   const metrics = Array.isArray(rows) ? rows.filter((r) => r && typeof r.metric === 'string') : []
 
-  const nullPcts = metrics.filter((r) => r.metric.startsWith('null_pct__')).map((r) => r.value)
-  const completeness = nullPcts.length ? floor1(100 - mean(nullPcts)) : null
+  const nullPcts = metrics
+    .filter((r) => r.metric.startsWith(QUALITY_METRICS.nullPctPrefix))
+    .map((r) => r.value)
+  const completeness = nullPcts.length ? floorScore(100 - mean(nullPcts)) : null
 
-  const badRow = metrics.find((r) => r.metric === 'bad_row_pct')
-  const validity = badRow ? floor1(100 - badRow.value) : null
+  const badRow = metrics.find((r) => r.metric === QUALITY_METRICS.badRowPct)
+  const validity = badRow ? floorScore(100 - badRow.value) : null
 
-  const dupRow = metrics.find((r) => r.metric === 'dup_row_pct')
-  const uniqueness = dupRow ? floor1(100 - dupRow.value) : null
+  const dupRow = metrics.find((r) => r.metric === QUALITY_METRICS.dupRowPct)
+  const uniqueness = dupRow ? floorScore(100 - dupRow.value) : null
 
   // Consistency = domain/range/logic rules (all bad_pct__ checks except
   // blank checks, which are completeness/validity concerns).
   const badPcts = metrics
-    .filter((r) => r.metric.startsWith('bad_pct__') && !r.metric.includes('not_blank__'))
+    .filter(
+      (r) =>
+        r.metric.startsWith(QUALITY_METRICS.badPctPrefix) &&
+        !r.metric.includes(QUALITY_METRICS.notBlank)
+    )
     .map((r) => r.value)
-  const consistency = badPcts.length ? floor1(100 - mean(badPcts)) : null
+  const consistency = badPcts.length ? floorScore(100 - mean(badPcts)) : null
 
   return { completeness, validity, uniqueness, consistency }
 }

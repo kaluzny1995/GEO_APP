@@ -1,6 +1,24 @@
 // Central configuration for GEO_APP — tune values here instead of editing
 // components or the API client.
 
+// --- Branding ---
+export const APP_NAME = 'GEO_APP'
+export const APP_TAGLINE = 'Data Quality & Quantity'
+export const APP_TITLE = `${APP_NAME} · ${APP_TAGLINE}`
+export const APP_OVERVIEW_SUBTITLE = 'Geographic data quality & quantity overview'
+
+// --- App routes ---
+export const ROUTES = {
+  overview: '/overview',
+  dataQuality: '/data-quality',
+  eventCategories: '/event-categories',
+  eventLocations: '/event-locations',
+}
+export const ROUTER_FUTURE_FLAGS = {
+  v7_startTransition: true,
+  v7_relativeSplatPath: true,
+}
+
 // --- GEO_API ---
 // Override the API location with VITE_API_BASE at build/dev time.
 export const API_BASE = import.meta.env?.VITE_API_BASE || 'http://localhost:8000'
@@ -8,12 +26,21 @@ export const API_TIMEOUT_MS = 8000
 // Rolling window probed to discover snapshot dates (the API has no list-dates
 // endpoint).
 export const PROBE_WINDOW_DAYS = 120
+export const API_DOWN_MESSAGE = 'API server is down! Please check the API server.'
+export const API_PATHS = {
+  dataQuality: '/data-quality',
+  dataQualityFileDates: 'file-dates',
+  eventCountsCategory: '/event-counts/category',
+  eventCountsLocation: '/event-counts/location',
+}
+export const API_QUERY_PARAMS = { fileDates: 'file_dates' }
 
 // --- Data-quality domain ---
 export const OVERALL_DATE = 'overall'
 export const DEFAULT_TABLE = 'avalanche_org'
 
 // 19 tables: 9 plain data source tables, 9 ETL tables, 1 union table.
+export const UNION_TABLE = 'union_etl'
 export const TABLE_NAMES = [
   // Plain data source tables (9)
   'eonet_event',
@@ -36,8 +63,10 @@ export const TABLE_NAMES = [
   'usgs_nwis_etl',
   'avalanche_org_etl',
   // Union table (1)
-  'union_etl',
+  UNION_TABLE,
 ]
+
+export const APP_SUBTITLE = `Monitor data quality and event quantity across ${TABLE_NAMES.length} geographic dataset tables`
 
 // --- Scoring ---
 // DAMA dimension scores are 0-100: >= good is ok, >= warn needs attention.
@@ -48,12 +77,55 @@ export const RULE_THRESHOLDS = { warn: 1, fail: 10 }
 export const FAIL_ESTIMATE_ROWS = 1000
 // Number-formatting locale (explicit so output does not depend on environment).
 export const LOCALE = 'en-US'
+export const SCORE_DECIMALS = 1
+export const PERCENT_DECIMALS = 1
+// Changes smaller than this percentage-point delta are displayed as unchanged.
+export const CHANGE_EPSILON = 0.05
+
+// Long-format metric names and prefixes returned by GEO_API.
+export const QUALITY_METRICS = {
+  totalRecords: 'total_records',
+  badRowPct: 'bad_row_pct',
+  dupRowPct: 'dup_row_pct',
+  nullPctPrefix: 'null_pct__',
+  badPctPrefix: 'bad_pct__',
+  notBlank: 'not_blank__',
+}
+
+// Rule IDs shown in the data-quality rule table.
+export const RULE_IDS = {
+  rowValidity: 'R-101',
+  rowUniqueness: 'R-102',
+  completenessPrefix: 'R-20',
+  validityPrefix: 'R-30',
+}
+
+export const RULE_STATUSES = ['pass', 'warn', 'fail']
+export const RULE_STATUS_LABELS = { pass: 'Pass', warn: 'Warn', fail: 'Fail' }
+
+export const KPI_LABELS = {
+  rows: 'Rows scanned',
+  rules: 'Rules evaluated',
+  failRate: 'Fail rate',
+  datasets: 'Datasets',
+}
+
+// DAMA dimensions and their plain-language gauge descriptions.
+export const QUALITY_DIMENSIONS = [
+  { id: 'completeness', label: 'Completeness', description: 'avg % of non-NULL values across fields' },
+  { id: 'validity', label: 'Validity', description: '% of rows passing all rules' },
+  { id: 'uniqueness', label: 'Uniqueness', description: '% of unique (non-duplicate) rows' },
+  { id: 'consistency', label: 'Consistency', description: 'avg % of domain/range rules passing' },
+]
 
 // --- Event counts ---
 // The shared severity scale's four danger levels. Ratings outside this list
 // (`none`, `no_rating`, null) only contribute to overall counts.
 export const DANGER_LEVELS = ['low', 'medium', 'high', 'extreme']
 export const UNRATED_DANGER_RATINGS = ['none', 'no_rating']
+
+// Initial row/column orientation per heatmap (true = transposed).
+export const DEFAULT_MATRIX_TRANSPOSED = { category: false, location: false }
 
 // --- Country code -> region groups (Event Locations matrix) ---
 // Column order in the source × region heatmap. Codes outside these groups

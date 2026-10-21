@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
+import { ROUTER_FUTURE_FLAGS } from './config.js'
 
 vi.mock('./components/Sidebar.jsx', () => ({
   default: function Sidebar() {
@@ -47,7 +48,7 @@ vi.mock('./views/DataQualityView.jsx', () => ({
 }))
 
 const renderWithRouter = (component) => {
-  return render(<BrowserRouter>{component}</BrowserRouter>)
+  return render(<BrowserRouter future={ROUTER_FUTURE_FLAGS}>{component}</BrowserRouter>)
 }
 
 const goTo = (path) => window.history.pushState({}, '', path)

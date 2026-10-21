@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import Badge from './Badge.jsx'
+import { LOCALE, PERCENT_DECIMALS } from '../config.js'
 
 const toneMap = { pass: 'ok', warn: 'warn', fail: 'bad' }
 
@@ -58,8 +59,8 @@ export default function DataQualityTable({ rows }) {
                 <td>{r.id}</td>
                 <td>{r.rule}</td>
                 <td className="muted">{r.scope}</td>
-                <td>{r.passRate.toFixed(1)}%</td>
-                <td>{r.fails.toLocaleString()}</td>
+                <td>{r.passRate.toFixed(PERCENT_DECIMALS)}%</td>
+                <td>{r.fails.toLocaleString(LOCALE)}</td>
                 <td>
                   <Badge tone={toneMap[r.status] ?? 'neutral'}>{r.status}</Badge>
                 </td>

@@ -2,10 +2,11 @@ import { describe, it, expect } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Landing from './Landing.jsx'
+import { ROUTER_FUTURE_FLAGS } from '../config.js'
 
 const renderLanding = () =>
   render(
-    <MemoryRouter>
+    <MemoryRouter future={ROUTER_FUTURE_FLAGS}>
       <Landing />
     </MemoryRouter>
   )
@@ -35,6 +36,19 @@ describe('Landing', () => {
     expect(locations).toHaveAttribute('href', '/event-locations')
   })
 
+  it('lists the data quality rules and what they mean', () => {
+    renderLanding()
+
+    expect(screen.getByRole('heading', { name: 'Data quality rules' })).toBeInTheDocument()
+    expect(screen.getByText('bad_row_pct')).toBeInTheDocument()
+    expect(screen.getByText(/share of rows that violate any rule/i)).toBeInTheDocument()
+    expect(screen.getByText('latitude_range')).toBeInTheDocument()
+    expect(screen.getByText(/latitude must be within −90\.\.90/i)).toBeInTheDocument()
+    expect(screen.getByText('danger_level_domain')).toBeInTheDocument()
+    expect(screen.getByText(/1\.\.5, or −1 for “no rating”/i)).toBeInTheDocument()
+    expect(screen.getByText(/under 1% passes/i)).toBeInTheDocument()
+  })
+
   it('explains that defaults load automatically and dropdowns reload metrics', () => {
     renderLanding()
     expect(screen.getByText(/load automatically when the dashboard opens/i)).toBeInTheDocument()
@@ -59,6 +73,7 @@ describe('Landing', () => {
     expect(card).toHaveTextContent('four danger levels (low, medium, high, extreme)')
     expect(card).toHaveTextContent('source-by-region heatmap')
     expect(card).toHaveTextContent('Waters/Oceans and Antarctica')
+    expect(card).toHaveTextContent(/transpose icon/i)
   })
 
   it('lists available datasets', () => {

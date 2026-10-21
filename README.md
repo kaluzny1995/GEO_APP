@@ -7,8 +7,9 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
 ## Features
 
 - `/overview` — welcome page with what GEO_APP is for, step-by-step
-  instructions for reading the dashboard, and a button group linking to all
-  three dashboards (Data Quality, Event Categories, Event Locations)
+  instructions for reading the dashboard, a glossary of data-quality rules and
+  their meanings, and a button group linking to all three dashboards (Data
+  Quality, Event Categories, Event Locations)
 - `/data-quality` — data-quality dashboard for a table and snapshot: KPI cards,
   quality gauges, line/radar/bar/doughnut charts (the trend line covers all
   discovered snapshot dates), and a sortable/filterable rule-level table. Table
@@ -26,15 +27,21 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
   source × region heatmap matrix with counts and shares (countries grouped into
   USA, Canada, South and Central America, Europe, Asia, Africa, Oceania,
   Waters/Oceans and Antarctica; see `COUNTRY_REGIONS` in `src/config.js`)
+- both heatmap matrices can be transposed (rows/columns swapped) with the
+  icon toggle in the card header; hover it to see the “Transpose” tooltip
 - Data comes from **GEO_API** at `http://localhost:8000` — see
   [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for the endpoint contract,
-  long-format metrics and dimension mapping.
+  long-format metrics, validation rules and dimension mapping.
 
 ## Configuration
 
-App-wide values (API base URL, request timeout, probe window, default table,
-tracked table names, score/rule thresholds, labels, number locale, danger levels
-and the country → region mapping) live in [`src/config.js`](src/config.js). The
+App-wide values (branding, routes, React Router v7 future flags, API base URL
+and endpoint paths, request timeout, probe window, default table, tracked table
+names, metric names and rule
+IDs, score/rule thresholds, labels, number/percent/score formatting, danger
+levels, default heatmap orientations and the country → region mapping) live in
+[`src/config.js`](src/config.js); visual chart/heatmap defaults live in
+[`src/variables/charts.js`](src/variables/charts.js). The
 API base URL defaults to
 `http://localhost:8000` and can be overridden with the `VITE_API_BASE`
 environment variable.
@@ -72,8 +79,16 @@ npm run dev      # http://localhost:5173
 npm run build
 npm run preview
 npm test         # Vitest + React Testing Library
+npm run test:coverage  # v8 coverage report
 npm run lint     # ESLint
 ```
+
+## Testing
+
+The full automated test inventory, including every test case and manual browser
+checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 24
+test files and 167 passing tests. `npm test` runs the suite once; use
+`npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
 
 ## Project structure
 
@@ -83,7 +98,8 @@ GEO_APP/
 ├── package.json
 ├── vite.config.js
 ├── vitest.config.js
-├── DATA_QUALITY_METRICS.md  # GEO_API endpoint contract & metric mapping
+├── DATA_QUALITY_METRICS.md  # GEO_API endpoint contract, metrics & rules
+├── TESTS.md                 # automated test inventory & manual checks
 ├── src/
 │   ├── main.jsx             # BrowserRouter + Bootstrap + theme CSS
 │   ├── App.jsx              # Admin shell (Sidebar + TopNavbar + Routes)
@@ -99,7 +115,6 @@ GEO_APP/
 │   ├── variables/charts.js  # chart colors and base options
 │   ├── test/                # Vitest setup (Chart.js/CSS mocks) + console checks
 │   └── assets/css/bd-vite.css  # dark theme (original, inspired by Black Dashboard)
-└── .github/workflows/ci.yml
 ```
 
 ## Credits

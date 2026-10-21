@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import DataQualityTable from './DataQualityTable.jsx'
+import { LOCALE } from '../config.js'
 
 const mockRules = [
   { id: 'R-101', rule: 'latitude in [-90, 90]', scope: 'places', passRate: 99.2, fails: 412, status: 'pass' },
@@ -28,11 +29,7 @@ describe('DataQualityTable', () => {
       expect(screen.getByText(r.id)).toBeInTheDocument()
       expect(screen.getByText(r.rule)).toBeInTheDocument()
       expect(screen.getByText(`${r.passRate.toFixed(1)}%`)).toBeInTheDocument()
-      // Fails number has non-breaking space in some locales, skip exact check
-      if (r.id !== 'R-106') {
-        const failsDigits = r.fails.toString().slice(0, 3)
-        expect(screen.getByText((content) => content.includes(failsDigits))).toBeInTheDocument()
-      }
+      expect(screen.getByText(r.fails.toLocaleString(LOCALE))).toBeInTheDocument()
     })
     // Check status badges
     expect(screen.getAllByText('pass')).toHaveLength(3)

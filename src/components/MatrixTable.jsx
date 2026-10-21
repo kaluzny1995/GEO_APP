@@ -1,43 +1,61 @@
 import { useMemo } from 'react'
-import { formatCount, formatPercent } from '../utils/eventCounts.js'
-import { chartColors, heatTextColor } from '../variables/charts.js'
+import { formatCount, formatPercent, transposeMatrix } from '../utils/eventCounts.js'
+import { chartColors, heatIntensity, heatTextColor } from '../variables/charts.js'
 
 const share = (value, total) => (total ? (value / total) * 100 : 0)
 
-const heatStyle = (value, max) => ({
-  color:
-    value > 0 && max > 0
-      ? heatTextColor(chartColors.primary, 0.25 + 0.75 * Math.sqrt(value / max))
-      : 'var(--bd-muted)',
-})
+const heatStyle = (value, max) => {
+  const intensity = heatIntensity(value, max)
+  return {
+    color:
+      intensity === null
+        ? 'var(--bd-muted)'
+        : heatTextColor(chartColors.primary, intensity),
+  }
+}
 
-export default function MatrixTable({ matrix, rowHeader, columnTotalLabel, footerLabel }) {
+export default function MatrixTable({
+  matrix,
+  transposed = false,
+  rowLabel,
+  columnLabel,
+  rowTotalLabel,
+  columnTotalLabel,
+}) {
+  const display = useMemo(
+    () => (transposed ? transposeMatrix(matrix) : matrix),
+    [matrix, transposed]
+  )
   const maxCell = useMemo(
-    () => matrix.rows.reduce((max, row) => Math.max(max, ...Object.values(row.cells)), 0),
-    [matrix]
+    () => display.rows.reduce((max, row) => Math.max(max, ...Object.values(row.cells)), 0),
+    [display]
   )
 
   if (!matrix.total) {
     return <p className="muted">No events to summarize.</p>
   }
 
+  const headerLabel = transposed ? columnLabel : rowLabel
+  const totalColumnLabel = transposed ? rowTotalLabel : columnTotalLabel
+  const totalRowLabel = transposed ? columnTotalLabel : rowTotalLabel
+
   return (
     <div className="table-wrap">
       <table className="heatmap">
         <thead>
           <tr>
-            <th scope="col">{rowHeader}</th>
-            {matrix.columns.map((column) => (
+            <th scope="col">{headerLabel}</th>
+            {display.columns.map((column) => (
               <th key={column.name} scope="col">{column.name}</th>
             ))}
-            <th scope="col">{columnTotalLabel}</th>
+            <th scope="col">{totalColumnLabel}</th>
           </tr>
         </thead>
         <tbody>
-          {matrix.rows.map((row) => (
+          {display.rows.map((row) => (
             <tr key={row.name}>
               <th scope="row">{row.name}</th>
-              {matrix.columns.map((column) => {
+              {display.columns.map((column) => {
                 const count = row.cells[column.name] ?? 0
                 return (
                   <td key={column.name} style={count > 0 ? heatStyle(count, maxCell) : undefined}>
@@ -61,15 +79,15 @@ export default function MatrixTable({ matrix, rowHeader, columnTotalLabel, foote
         </tbody>
         <tfoot>
           <tr>
-            <th scope="row">{footerLabel}</th>
-            {matrix.columns.map((column) => (
+            <th scope="row">{totalRowLabel}</th>
+            {display.columns.map((column) => (
               <td key={column.name}>
                 {formatCount(column.total)}{' '}
                 <span className="muted">({formatPercent(share(column.total, matrix.total))})</span>
               </td>
             ))}
             <td>
-              {formatCount(matrix.total)} <span className="muted">(100.0%)</span>
+              {formatCount(matrix.total)} <span className="muted">({formatPercent(100)})</span>
             </td>
           </tr>
         </tfoot>

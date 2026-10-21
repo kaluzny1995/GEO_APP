@@ -69,6 +69,80 @@ A JSON array of metric rows:
 | `min__` `max__` `mean__`   | Field statistics                            |
 | `p05__` … `p95__` `range__` `stddev__` | Field percentiles / dispersion |
 
+## Validation Rules
+
+GEO_API exposes validation-rule metrics for each dataset table. Each value is
+the percentage of rows that violate the check. A table only returns metrics for
+rules that apply to its columns, so the number of evaluated rules varies by
+table and snapshot.
+
+A rule is scored by its **violating percentage**:
+
+- under 1% — **pass** (pass rate above 99%)
+- 1% to just under 10% — **warn** (pass rate 90–99%)
+- 10% or more — **fail** (pass rate below 90%)
+
+The thresholds are configured as `RULE_THRESHOLDS` in `src/config.js`.
+
+### Table-level metrics
+
+| Metric | Meaning |
+|--------|---------|
+| `bad_row_pct` | Share of rows violating at least one validation rule. Drives the Validity gauge. |
+| `dup_row_pct` | Share of duplicate full rows within the snapshot. Drives the Uniqueness gauge. |
+| `null_pct__<column>` | Share of rows where the column is NULL. Drives the Completeness gauge. |
+| `bad_pct__<rule>` | Share of rows failing one specific field or model rule. |
+
+### Model rules
+
+These checks are emitted as `bad_pct__<rule>` (for example,
+`not_blank__event_id` is reported as `bad_pct__not_blank__event_id`).
+
+| Rule | Meaning |
+|------|---------|
+| `not_blank__<column>` | Required text — string columns must not be blank after trimming. NULLs are measured separately by `null_pct__<column>`. |
+| `file_date_iso` | Snapshot date — `file_date` must match `YYYY-MM-DD`. Applies to dated snapshots only, not `overall`. |
+
+`not_blank__*` checks are excluded from the Consistency gauge because blank
+values are a completeness/validity concern, not a domain/range consistency
+concern.
+
+### Dataset rules
+
+These checks are also emitted as `bad_pct__<rule>`.
+
+| Rule | Applies to | Meaning |
+|------|------------|---------|
+| `latitude_range` | Coordinate data | Latitude must be within −90..90. |
+| `longitude_range` | Coordinate data | Longitude must be within −180..180. |
+| `danger_level_domain` | Avalanche data | `danger_level` must be 1..5, or −1 for “no rating”. |
+| `forecast_order` | Avalanche data | `forecast_end` must not precede `forecast_start` (NULLs allowed). |
+| `alert_level_domain` | GDACS events | `alert_level` must be Green, Orange or Red. |
+| `acres_non_negative` | Wildfires | `acres` must be ≥ 0. |
+| `percent_contained_0_100` | Wildfires | `percent_contained` must be within 0..100. |
+| `geometry_count_non_negative` | EONET events | `geometry_count` must be ≥ 0. |
+| `wmo_wind_non_negative` | Cyclones | `wmo_wind` must be ≥ 0. |
+| `discharge_non_negative` | Floods | `discharge_m3s` must be ≥ 0. |
+| `gauge_height_non_negative` | Rivers | `gauge_height` must be ≥ 0. |
+| `flood_category_domain` | Rivers | `flood_category` must be one of `no_flooding`, `action`, `minor`, `moderate` or `major`. |
+
+### Rule rows in the dashboard
+
+`src/views/DataQualityView.jsx` turns every scoreable metric into a row in the
+rule-level table:
+
+| Rule row | Source metric | Rule ID prefix |
+|----------|---------------|----------------|
+| Row validity | `bad_row_pct` | `R-101` |
+| Row uniqueness | `dup_row_pct` | `R-102` |
+| Field completeness: `<column>` | `null_pct__<column>` | `R-20n` |
+| Field validity: `<rule>` | `bad_pct__<rule>` | `R-30n` |
+
+The table shows `Pass %` as `100 − violating_percentage`, rounded to the
+nearest whole percentage, and `Fails` as an estimate based on
+`FAIL_ESTIMATE_ROWS` (1,000 nominal rows, not the actual `total_records`
+count). Rule status follows the [Rule Status](#rule-status) thresholds below.
+
 ## Dimension Mapping (frontend)
 
 Computed in `src/utils/quality.js` (`dimensionsFromMetrics`):

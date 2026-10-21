@@ -10,8 +10,8 @@ import {
   Legend,
 } from 'chart.js'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
-import { baseOptions, chartColors, passRateBarOptions } from '../variables/charts.js'
-import { SCORE_THRESHOLDS } from '../config.js'
+import { baseOptions, chartColors, passRateBarOptions, statusColors } from '../variables/charts.js'
+import { RULE_STATUSES, RULE_STATUS_LABELS, SCORE_THRESHOLDS } from '../config.js'
 
 // Register Chart.js components at module load time
 ChartJS.register(
@@ -64,15 +64,13 @@ export default function QualityCharts({ dataset }) {
   }
 
   const doughnutData = {
-    labels: ['Pass', 'Warn', 'Fail'],
+    labels: RULE_STATUSES.map((status) => RULE_STATUS_LABELS[status]),
     datasets: [
       {
-        data: [
-          dataset.rules.filter((r) => r.status === 'pass').length,
-          dataset.rules.filter((r) => r.status === 'warn').length,
-          dataset.rules.filter((r) => r.status === 'fail').length,
-        ],
-        backgroundColor: [chartColors.success, chartColors.warning, chartColors.danger],
+        data: RULE_STATUSES.map(
+          (status) => dataset.rules.filter((r) => r.status === status).length
+        ),
+        backgroundColor: RULE_STATUSES.map((status) => statusColors[status]),
         borderWidth: 0,
       },
     ],

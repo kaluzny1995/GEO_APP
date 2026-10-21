@@ -7,9 +7,27 @@ import DataQualityTable from '../components/DataQualityTable.jsx'
 import GaugeCard from '../components/GaugeCard.jsx'
 import Badge from '../components/Badge.jsx'
 import { dimensionsFromMetrics, overallScore, toneFor, changeTone, scoreLabel } from '../utils/quality.js'
-import { baseOptions, chartColors, passRateBarOptions, radarOptions } from '../variables/charts.js'
+import { baseOptions, chartColors, passRateBarOptions, radarOptions, statusColors } from '../variables/charts.js'
 import { fetchDataQuality, fetchTableIndex } from '../api/dataQuality.js'
-import { DEFAULT_TABLE, TABLE_NAMES, OVERALL_DATE, RULE_THRESHOLDS, FAIL_ESTIMATE_ROWS, LOCALE, SCORE_THRESHOLDS } from '../config.js'
+import {
+  DEFAULT_TABLE,
+  TABLE_NAMES,
+  OVERALL_DATE,
+  RULE_THRESHOLDS,
+  FAIL_ESTIMATE_ROWS,
+  LOCALE,
+  SCORE_THRESHOLDS,
+  SCORE_DECIMALS,
+  PERCENT_DECIMALS,
+  CHANGE_EPSILON,
+  QUALITY_METRICS,
+  QUALITY_DIMENSIONS,
+  RULE_IDS,
+  KPI_LABELS,
+  RULE_STATUSES,
+  RULE_STATUS_LABELS,
+  ROUTES,
+} from '../config.js'
 
 // Register Chart.js components at module load time
 ChartJS.register(
@@ -29,59 +47,62 @@ const sortedTableNames = [...TABLE_NAMES].sort()
 
 // Default KPI cards (shown while data loads or when API unavailable)
 const defaultKpis = [
-  { id: 'rows', label: 'Rows scanned', value: '—', delta: '—', up: true },
-  { id: 'rules', label: 'Rules evaluated', value: '—', delta: '—', up: true },
-  { id: 'fail-rate', label: 'Fail rate', value: '—', delta: '—', up: true },
-  { id: 'datasets', label: 'Datasets', value: '—', delta: '—', up: true },
+  { id: 'rows', label: KPI_LABELS.rows, value: '—', delta: '—', up: true },
+  { id: 'rules', label: KPI_LABELS.rules, value: '—', delta: '—', up: true },
+  { id: 'fail-rate', label: KPI_LABELS.failRate, value: '—', delta: '—', up: true },
+  { id: 'datasets', label: KPI_LABELS.datasets, value: '—', delta: '—', up: true },
 ]
 
 // Extract rule-level checks from flat metrics for the data-quality table
+const ruleStatus = (value) =>
+  value >= RULE_THRESHOLDS.fail ? 'fail' : value >= RULE_THRESHOLDS.warn ? 'warn' : 'pass'
+
 const metricsToRules = (metrics) => {
   const rules = []
 
-  const badRow = metrics.find((r) => r.metric === 'bad_row_pct')
+  const badRow = metrics.find((r) => r.metric === QUALITY_METRICS.badRowPct)
   if (badRow) {
     rules.push({
-      id: 'R-101',
-      rule: 'Row validity (bad_row_pct)',
+      id: RULE_IDS.rowValidity,
+      rule: `Row validity (${QUALITY_METRICS.badRowPct})`,
       scope: 'table',
       passRate: Math.round(100 - badRow.value),
       fails: Math.round((badRow.value / 100) * FAIL_ESTIMATE_ROWS),
-      status: badRow.value >= RULE_THRESHOLDS.fail ? 'fail' : badRow.value >= RULE_THRESHOLDS.warn ? 'warn' : 'pass',
+      status: ruleStatus(badRow.value),
     })
   }
 
-  const dupRow = metrics.find((r) => r.metric === 'dup_row_pct')
+  const dupRow = metrics.find((r) => r.metric === QUALITY_METRICS.dupRowPct)
   if (dupRow) {
     rules.push({
-      id: 'R-102',
-      rule: 'Row uniqueness (dup_row_pct)',
+      id: RULE_IDS.rowUniqueness,
+      rule: `Row uniqueness (${QUALITY_METRICS.dupRowPct})`,
       scope: 'table',
       passRate: Math.round(100 - dupRow.value),
       fails: Math.round((dupRow.value / 100) * FAIL_ESTIMATE_ROWS),
-      status: dupRow.value >= RULE_THRESHOLDS.fail ? 'fail' : dupRow.value >= RULE_THRESHOLDS.warn ? 'warn' : 'pass',
+      status: ruleStatus(dupRow.value),
     })
   }
 
-  metrics.filter((r) => r.metric.startsWith('null_pct__')).forEach((r, i) => {
+  metrics.filter((r) => r.metric.startsWith(QUALITY_METRICS.nullPctPrefix)).forEach((r, i) => {
     rules.push({
-      id: `R-20${i}`,
-      rule: `Field completeness: ${r.metric.replace('null_pct__', '')}`,
+      id: `${RULE_IDS.completenessPrefix}${i}`,
+      rule: `Field completeness: ${r.metric.replace(QUALITY_METRICS.nullPctPrefix, '')}`,
       scope: 'table',
       passRate: Math.round(100 - r.value),
       fails: Math.round((r.value / 100) * FAIL_ESTIMATE_ROWS),
-      status: r.value >= RULE_THRESHOLDS.fail ? 'fail' : r.value >= RULE_THRESHOLDS.warn ? 'warn' : 'pass',
+      status: ruleStatus(r.value),
     })
   })
 
-  metrics.filter((r) => r.metric.startsWith('bad_pct__')).forEach((r, i) => {
+  metrics.filter((r) => r.metric.startsWith(QUALITY_METRICS.badPctPrefix)).forEach((r, i) => {
     rules.push({
-      id: `R-30${i}`,
-      rule: `Field validity: ${r.metric.replace('bad_pct__', '')}`,
+      id: `${RULE_IDS.validityPrefix}${i}`,
+      rule: `Field validity: ${r.metric.replace(QUALITY_METRICS.badPctPrefix, '')}`,
       scope: 'table',
       passRate: Math.round(100 - r.value),
       fails: Math.round((r.value / 100) * FAIL_ESTIMATE_ROWS),
-      status: r.value >= RULE_THRESHOLDS.fail ? 'fail' : r.value >= RULE_THRESHOLDS.warn ? 'warn' : 'pass',
+      status: ruleStatus(r.value),
     })
   })
 
@@ -191,20 +212,20 @@ export default function DataQualityView() {
 
   const kpis = useMemo(() => {
     if (!metrics.length) return defaultKpis
-    const totalRecords = metrics.find((r) => r.metric === 'total_records')?.value
-    const badRowPct = metrics.find((r) => r.metric === 'bad_row_pct')?.value
+    const totalRecords = metrics.find((r) => r.metric === QUALITY_METRICS.totalRecords)?.value
+    const badRowPct = metrics.find((r) => r.metric === QUALITY_METRICS.badRowPct)?.value
     const passCount = rules.filter((r) => r.status === 'pass').length
 
     const prevRows = previousSnapshot?.rows
-    const prevTotal = prevRows?.find((r) => r.metric === 'total_records')?.value
-    const prevBadRow = prevRows?.find((r) => r.metric === 'bad_row_pct')?.value
+    const prevTotal = prevRows?.find((r) => r.metric === QUALITY_METRICS.totalRecords)?.value
+    const prevBadRow = prevRows?.find((r) => r.metric === QUALITY_METRICS.badRowPct)?.value
     const prevPass = prevRows ? metricsToRules(prevRows).filter((r) => r.status === 'pass').length : null
 
     const makeChange = (current, prev, { pct = false, invert = false } = {}) => {
       if (typeof current !== 'number' || typeof prev !== 'number') return null
       let d = current - prev
-      if (pct && Math.abs(d) < 0.05) d = 0
-      const text = ` (${d > 0 ? '+' : ''}${pct ? d.toFixed(1) : d.toLocaleString(LOCALE)})`
+      if (pct && Math.abs(d) < CHANGE_EPSILON) d = 0
+      const text = ` (${d > 0 ? '+' : ''}${pct ? d.toFixed(PERCENT_DECIMALS) : d.toLocaleString(LOCALE)})`
       return { text, tone: changeTone(d, invert) }
     }
 
@@ -215,7 +236,7 @@ export default function DataQualityView() {
     return [
       {
         id: 'rows',
-        label: 'Rows scanned',
+        label: KPI_LABELS.rows,
         value: typeof totalRecords === 'number' ? totalRecords.toLocaleString(LOCALE) : '—',
         delta: `${metrics.length} metrics`,
         change: rowsChange?.text,
@@ -224,7 +245,7 @@ export default function DataQualityView() {
       },
       {
         id: 'rules',
-        label: 'Rules evaluated',
+        label: KPI_LABELS.rules,
         value: rules.length,
         delta: `${passCount} pass`,
         change: passChange?.text,
@@ -233,16 +254,16 @@ export default function DataQualityView() {
       },
       {
         id: 'fail-rate',
-        label: 'Fail rate',
-        value: typeof badRowPct === 'number' ? `${badRowPct.toFixed(1)}%` : '—',
+        label: KPI_LABELS.failRate,
+        value: typeof badRowPct === 'number' ? `${badRowPct.toFixed(PERCENT_DECIMALS)}%` : '—',
         delta: 'bad rows',
         change: failChange?.text,
         changeTone: failChange?.tone,
-        up: typeof badRowPct === 'number' ? badRowPct < 1 : true,
+        up: typeof badRowPct === 'number' ? badRowPct < RULE_THRESHOLDS.warn : true,
       },
       {
         id: 'datasets',
-        label: 'Datasets',
+        label: KPI_LABELS.datasets,
         value: TABLE_NAMES.length,
         delta: 'tracked tables',
         up: true,
@@ -255,46 +276,19 @@ export default function DataQualityView() {
     const current = dimensionScores[key]
     const prev = previousSnapshot.dimensions?.[key]
     if (typeof current !== 'number' || typeof prev !== 'number') return null
-    const diff = Math.round((current - prev) * 10) / 10
+    const factor = 10 ** SCORE_DECIMALS
+    const diff = Math.round((current - prev) * factor) / factor
     return diff === 0 ? 0 : diff
   }
 
   const deltaTitle = previousSnapshot ? `vs previous snapshot (${previousSnapshot.date})` : undefined
 
-  const gauges = [
-    {
-      id: 'completeness',
-      label: 'Completeness',
-      value: dimensionScores.completeness,
-      description: 'avg % of non-NULL values across fields',
-      delta: gaugeDelta('completeness'),
-      deltaTitle,
-    },
-    {
-      id: 'validity',
-      label: 'Validity',
-      value: dimensionScores.validity,
-      description: '% of rows passing all rules',
-      delta: gaugeDelta('validity'),
-      deltaTitle,
-    },
-    {
-      id: 'uniqueness',
-      label: 'Uniqueness',
-      value: dimensionScores.uniqueness,
-      description: '% of unique (non-duplicate) rows',
-      delta: gaugeDelta('uniqueness'),
-      deltaTitle,
-    },
-    {
-      id: 'consistency',
-      label: 'Consistency',
-      value: dimensionScores.consistency,
-      description: 'avg % of domain/range rules passing',
-      delta: gaugeDelta('consistency'),
-      deltaTitle,
-    },
-  ]
+  const gauges = QUALITY_DIMENSIONS.map((dimension) => ({
+    ...dimension,
+    value: dimensionScores[dimension.id],
+    delta: gaugeDelta(dimension.id),
+    deltaTitle,
+  }))
 
   const sortedDates = [...availableDates].sort()
 
@@ -338,28 +332,19 @@ export default function DataQualityView() {
   const barOptions = passRateBarOptions(passRates)
 
   const doughnutData = {
-    labels: ['Pass', 'Warn', 'Fail'],
+    labels: RULE_STATUSES.map((status) => RULE_STATUS_LABELS[status]),
     datasets: [{
-      data: [
-        rules.filter((r) => r.status === 'pass').length,
-        rules.filter((r) => r.status === 'warn').length,
-        rules.filter((r) => r.status === 'fail').length,
-      ],
-      backgroundColor: [chartColors.success, chartColors.warning, chartColors.danger],
+      data: RULE_STATUSES.map((status) => rules.filter((r) => r.status === status).length),
+      backgroundColor: RULE_STATUSES.map((status) => statusColors[status]),
       borderWidth: 0,
     }],
   }
 
   const radarData = {
-    labels: ['Completeness', 'Validity', 'Uniqueness', 'Consistency'],
+    labels: QUALITY_DIMENSIONS.map((dimension) => dimension.label),
     datasets: [{
       label: `Quality dimensions (${fileDate})`,
-      data: [
-        dimensionScores.completeness ?? null,
-        dimensionScores.validity ?? null,
-        dimensionScores.uniqueness ?? null,
-        dimensionScores.consistency ?? null,
-      ],
+      data: QUALITY_DIMENSIONS.map((dimension) => dimensionScores[dimension.id] ?? null),
       backgroundColor: chartColors.primarySoft,
       borderColor: chartColors.primary,
       pointBackgroundColor: chartColors.primary,
@@ -389,7 +374,7 @@ export default function DataQualityView() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <NavLink to="/overview" className="btn btn-sm btn-outline-secondary">
+          <NavLink to={ROUTES.overview} className="btn btn-sm btn-outline-secondary">
             ← Back to Overview
           </NavLink>
           <select

@@ -4,11 +4,13 @@
 //   GET /data-quality/{table_name}/file-dates?file_dates=overall
 import { dimensionsFromMetrics, overallScore } from '../utils/quality.js'
 import { apiUrl, fetchWithTimeout } from './client.js'
-import { PROBE_WINDOW_DAYS, OVERALL_DATE } from '../config.js'
+import { API_PATHS, API_QUERY_PARAMS, PROBE_WINDOW_DAYS, OVERALL_DATE } from '../config.js'
+
+const tablePath = (tableName) => `${API_PATHS.dataQuality}/${encodeURIComponent(tableName)}`
 
 export async function fetchDataQuality(tableName, fileDate) {
   return fetchWithTimeout(
-    apiUrl(`/data-quality/${encodeURIComponent(tableName)}/${encodeURIComponent(fileDate)}`)
+    apiUrl(`${tablePath(tableName)}/${encodeURIComponent(fileDate)}`)
   )
 }
 
@@ -39,7 +41,7 @@ export async function fetchTableIndex(tableName, fileDate) {
 
   const rows = await fetchWithTimeout(
     apiUrl(
-      `/data-quality/${encodeURIComponent(tableName)}/file-dates?file_dates=${[...candidates].map(encodeURIComponent).join(',')}`
+      `${tablePath(tableName)}/${API_PATHS.dataQualityFileDates}?${API_QUERY_PARAMS.fileDates}=${[...candidates].map(encodeURIComponent).join(',')}`
     )
   )
   if (!Array.isArray(rows)) return { dates: [], trend: [] }

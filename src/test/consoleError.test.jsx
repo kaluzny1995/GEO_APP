@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, act } from '@testing-library/react'
 import { HashRouter } from 'react-router-dom'
 import App from '../App.jsx'
+import { ROUTER_FUTURE_FLAGS } from '../config.js'
 
 describe('Console error detection', () => {
   let consoleErrorSpy
@@ -26,7 +27,7 @@ describe('Console error detection', () => {
   })
 
   const renderWithRouter = (component) => {
-    return render(<HashRouter>{component}</HashRouter>)
+    return render(<HashRouter future={ROUTER_FUTURE_FLAGS}>{component}</HashRouter>)
   }
 
   it('should not log Chart.js registration errors when rendering DataQualityView', async () => {
@@ -78,6 +79,17 @@ describe('Console error detection', () => {
       e.includes('must be destroyed')
     )
     expect(canvasErrors).toHaveLength(0)
+  })
+
+  it('should not log React Router future flag warnings', async () => {
+    await act(async () => {
+      renderWithRouter(<App />)
+    })
+
+    const routerWarnings = warnings.filter((warning) =>
+      warning.includes('React Router Future Flag')
+    )
+    expect(routerWarnings).toHaveLength(0)
   })
 
   it('should not log any uncaught errors during initial render', async () => {

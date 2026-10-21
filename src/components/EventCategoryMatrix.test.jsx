@@ -35,6 +35,25 @@ describe('EventCategoryMatrix', () => {
     expect(totalCells[2]).toHaveTextContent('100 (100.0%)')
   })
 
+  it('swaps rows and columns when transposed', () => {
+    render(<EventCategoryMatrix rows={ROWS} transposed />)
+
+    expect(screen.getByRole('columnheader', { name: 'Source' })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'fire' })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'storm' })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'All categories' })).toBeInTheDocument()
+
+    const eonet = within(screen.getByRole('rowheader', { name: 'EONET' }).closest('tr')).getAllByRole('cell')
+    expect(eonet[0]).toHaveTextContent('40 (40.0%)')
+    expect(eonet[1]).toHaveTextContent('20 (20.0%)')
+    expect(eonet[2]).toHaveTextContent('60 (60.0%)')
+
+    const totals = within(screen.getByRole('rowheader', { name: 'All sources' }).closest('tr')).getAllByRole('cell')
+    expect(totals[0]).toHaveTextContent('80 (80.0%)')
+    expect(totals[1]).toHaveTextContent('20 (20.0%)')
+    expect(totals[2]).toHaveTextContent('100 (100.0%)')
+  })
+
   it('shows an empty message when there are no counts', () => {
     render(<EventCategoryMatrix rows={[]} />)
     expect(screen.getByText(/no events to summarize/i)).toBeInTheDocument()

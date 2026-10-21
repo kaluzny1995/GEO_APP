@@ -11,6 +11,12 @@ export const chartColors = {
   label: '#d4d4e0',
 }
 
+export const statusColors = {
+  pass: chartColors.success,
+  warn: chartColors.warning,
+  fail: chartColors.danger,
+}
+
 // Colors for the four shared-scale danger levels.
 export const dangerColors = {
   low: chartColors.success,
@@ -18,6 +24,14 @@ export const dangerColors = {
   high: chartColors.warning,
   extreme: chartColors.danger,
 }
+
+// Heatmap intensity ramp: non-zero values use a square-root scale so small
+// counts remain visible; zero/missing values have no intensity.
+export const HEAT_MIN_INTENSITY = 0.25
+export const heatIntensity = (value, max) =>
+  value > 0 && max > 0
+    ? HEAT_MIN_INTENSITY + (1 - HEAT_MIN_INTENSITY) * Math.sqrt(value / max)
+    : null
 
 // Heatmap text color: blends from a light gray (readable on the dark theme,
 // even for the smallest non-zero values) to the bright accent color.

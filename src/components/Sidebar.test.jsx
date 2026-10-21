@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Sidebar from './Sidebar.jsx'
+import { ROUTER_FUTURE_FLAGS } from '../config.js'
 
 vi.mock('../routes.js', () => ({
   default: [
@@ -12,7 +13,7 @@ vi.mock('../routes.js', () => ({
 
 const renderSidebar = () =>
   render(
-    <MemoryRouter>
+    <MemoryRouter future={ROUTER_FUTURE_FLAGS}>
       <Sidebar />
     </MemoryRouter>
   )
@@ -21,6 +22,7 @@ describe('Sidebar', () => {
   it('renders brand logo and name', () => {
     renderSidebar()
     expect(screen.getByText('GEO_APP')).toBeInTheDocument()
+    expect(screen.getByText('🌍')).toBeInTheDocument()
     expect(screen.getByText('Data Quality & Quantity')).toBeInTheDocument()
     expect(screen.getAllByText('Data Quality')).toHaveLength(1)
   })

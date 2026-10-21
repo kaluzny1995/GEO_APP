@@ -1,7 +1,7 @@
-import { API_BASE, API_TIMEOUT_MS } from '../config.js'
+import { API_BASE, API_TIMEOUT_MS, API_DOWN_MESSAGE } from '../config.js'
 
 export const apiDownError = () => {
-  const err = new Error('API server is down! Please check the API server.')
+  const err = new Error(API_DOWN_MESSAGE)
   err.isConnectionError = true
   return err
 }

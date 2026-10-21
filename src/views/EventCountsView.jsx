@@ -3,9 +3,17 @@ import { NavLink } from 'react-router-dom'
 import EventCountsTable from '../components/EventCountsTable.jsx'
 import EventCategoryMatrix from '../components/EventCategoryMatrix.jsx'
 import SourceRegionMatrix from '../components/SourceRegionMatrix.jsx'
+import Icon from '../components/Icon.jsx'
+import Tooltip from '../components/Tooltip.jsx'
 import { fetchEventCountsByCategory, fetchEventCountsByLocation } from '../api/eventCounts.js'
 import { eventCountRows, formatCount, formatPercent, summarizeEventCounts } from '../utils/eventCounts.js'
-import { DANGER_LEVELS, UNRATED_DANGER_RATINGS } from '../config.js'
+import {
+  DANGER_LEVELS,
+  UNRATED_DANGER_RATINGS,
+  DEFAULT_MATRIX_TRANSPOSED,
+  ROUTES,
+  UNION_TABLE,
+} from '../config.js'
 import { dangerColors } from '../variables/charts.js'
 
 const capitalize = (value) => value.charAt(0).toUpperCase() + value.slice(1)
@@ -13,8 +21,7 @@ const capitalize = (value) => value.charAt(0).toUpperCase() + value.slice(1)
 const DIMENSIONS = {
   category: {
     title: 'Event Categories',
-    subtitle:
-      'The union_etl dataset counts events by category and subcategory for each source and subsource. Totals are shown overall and for the four danger levels.',
+    subtitle: `The ${UNION_TABLE} dataset counts events by category and subcategory for each source and subsource. Totals are shown overall and for the four danger levels.`,
     tableTitle: 'Categories by source',
     tableSub:
       'Each row combines source, subsource, event category and subcategory. Danger-level cells show the count and its share of the row total.',
@@ -22,13 +29,30 @@ const DIMENSIONS = {
   },
   location: {
     title: 'Event Locations',
-    subtitle:
-      'The union_etl dataset counts events by country and state/province for each source and subsource. Totals are shown overall and for the four danger levels.',
+    subtitle: `The ${UNION_TABLE} dataset counts events by country and state/province for each source and subsource. Totals are shown overall and for the four danger levels.`,
     tableTitle: 'Locations by source',
     tableSub:
       'Each row combines source, subsource, country and state/province. Danger-level cells show the count and its share of the row total.',
     load: fetchEventCountsByLocation,
   },
+}
+
+function TransposeButton({ transposed, onToggle }) {
+  return (
+    <Tooltip label="Transpose">
+      <button
+        type="button"
+        className="btn btn-sm ghost transpose-btn"
+        aria-label="Transpose"
+        aria-pressed={transposed}
+        onClick={onToggle}
+      >
+        <span className="transpose-icon">
+          <Icon name="circular-arrows-couple" />
+        </span>
+      </button>
+    </Tooltip>
+  )
 }
 
 function EventCountsView({ dimension }) {
@@ -39,6 +63,7 @@ function EventCountsView({ dimension }) {
   const [error, setError] = useState(null)
   const [isApiDown, setIsApiDown] = useState(false)
   const [requestId, setRequestId] = useState(0)
+  const [transposed, setTransposed] = useState(DEFAULT_MATRIX_TRANSPOSED[dimension])
 
   useEffect(() => {
     let cancelled = false
@@ -77,7 +102,7 @@ function EventCountsView({ dimension }) {
           <h2>{config.title}</h2>
           <p className="muted">{config.subtitle}</p>
         </div>
-        <NavLink to="/overview" className="btn btn-sm btn-outline-secondary ms-auto">
+        <NavLink to={ROUTES.overview} className="btn btn-sm btn-outline-secondary ms-auto">
           ← Back to Overview
         </NavLink>
       </div>
@@ -128,23 +153,35 @@ function EventCountsView({ dimension }) {
 
           {dimension === 'category' && (
             <div className="card" style={{ marginTop: 16 }}>
-              <h3>Event category by source</h3>
+              <div className="card-title-row">
+                <h3>Event category by source</h3>
+                <TransposeButton
+                  transposed={transposed}
+                  onToggle={() => setTransposed((value) => !value)}
+                />
+              </div>
               <p className="sub muted">
                 Heatmap of event counts (and % of all events) for each category and source;
                 subsources and danger levels are summed.
               </p>
-              <EventCategoryMatrix rows={rows} />
+              <EventCategoryMatrix rows={rows} transposed={transposed} />
             </div>
           )}
 
           {dimension === 'location' && (
             <div className="card" style={{ marginTop: 16 }}>
-              <h3>Source by region</h3>
+              <div className="card-title-row">
+                <h3>Source by region</h3>
+                <TransposeButton
+                  transposed={transposed}
+                  onToggle={() => setTransposed((value) => !value)}
+                />
+              </div>
               <p className="sub muted">
                 Heatmap of event counts (and % of all events) for each source and region group;
                 subsources, countries and danger levels are summed.
               </p>
-              <SourceRegionMatrix rows={rows} />
+              <SourceRegionMatrix rows={rows} transposed={transposed} />
             </div>
           )}
 

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { EventCategoriesView, EventLocationsView } from './EventCountsView.jsx'
 import { fetchEventCountsByCategory, fetchEventCountsByLocation } from '../api/eventCounts.js'
+import { ROUTER_FUTURE_FLAGS } from '../config.js'
 
 vi.mock('../api/eventCounts.js', () => ({
   fetchEventCountsByCategory: vi.fn(),
@@ -21,7 +22,7 @@ const LOCATION_ROWS = [
 ]
 
 const renderView = (view) =>
-  render(<MemoryRouter>{view}</MemoryRouter>)
+  render(<MemoryRouter future={ROUTER_FUTURE_FLAGS}>{view}</MemoryRouter>)
 
 describe('EventCountsView', () => {
   beforeEach(() => {
@@ -63,6 +64,41 @@ describe('EventCountsView', () => {
     expect(screen.getByRole('columnheader', { name: 'All regions' })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'Waters/Oceans' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Event category by source' })).not.toBeInTheDocument()
+
+    const transpose = screen.getByRole('button', { name: 'Transpose' })
+    expect(transpose).toHaveAttribute('aria-pressed', 'false')
+    expect(transpose.querySelector('svg')).toBeInTheDocument()
+
+    fireEvent.click(transpose)
+    expect(screen.getByRole('columnheader', { name: 'Region' })).toBeInTheDocument()
+    expect(transpose).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('transposes the category matrix and restores the original layout', async () => {
+    fetchEventCountsByCategory.mockResolvedValue(CATEGORY_ROWS)
+    renderView(<EventCategoriesView />)
+
+    const heading = await screen.findByRole('heading', { name: 'Event category by source' })
+    const matrixTable = () => heading.closest('.card').querySelector('.heatmap')
+    expect(within(matrixTable()).getByRole('columnheader', { name: 'Event category' })).toBeInTheDocument()
+
+    const transpose = screen.getByRole('button', { name: 'Transpose' })
+    expect(transpose).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.mouseOver(transpose)
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Transpose')
+    fireEvent.mouseOut(transpose)
+
+    fireEvent.click(transpose)
+
+    expect(within(matrixTable()).getByRole('columnheader', { name: 'Source' })).toBeInTheDocument()
+    expect(within(matrixTable()).getByRole('columnheader', { name: 'All categories' })).toBeInTheDocument()
+    expect(within(matrixTable()).getByRole('rowheader', { name: 'EONET' })).toBeInTheDocument()
+    expect(transpose).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(transpose)
+
+    expect(within(matrixTable()).getByRole('columnheader', { name: 'Event category' })).toBeInTheDocument()
+    expect(transpose).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('shows the API-down alert and retries the request', async () => {

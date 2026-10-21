@@ -9,6 +9,7 @@ import {
   isUnrated,
   sourceRegionMatrix,
   summarizeEventCounts,
+  transposeMatrix,
 } from './eventCounts.js'
 import { COUNTRY_REGIONS, REGION_ORDER } from '../config.js'
 
@@ -136,6 +137,20 @@ describe('eventCounts utils', () => {
     expect(matrix.rows).toEqual([
       { name: 'GDACS', total: 2, cells: { USA: 2 } },
       { name: 'OPENMETEO', total: 4, cells: { Europe: 4 } },
+    ])
+  })
+
+  it('transposes a matrix while preserving row and column totals', () => {
+    const transposed = transposeMatrix(categorySourceMatrix(CATEGORY_ROWS))
+
+    expect(transposed.total).toBe(100)
+    expect(transposed.columns).toEqual([
+      { name: 'fire', total: 90 },
+      { name: 'storm', total: 10 },
+    ])
+    expect(transposed.rows).toEqual([
+      { name: 'EONET', total: 10, cells: { storm: 10 } },
+      { name: 'GDACS', total: 90, cells: { fire: 90 } },
     ])
   })
 

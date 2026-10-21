@@ -3,6 +3,7 @@ import {
   DEFAULT_REGION,
   DANGER_LEVELS,
   LOCALE,
+  PERCENT_DECIMALS,
   REGION_ORDER,
   UNRATED_DANGER_RATINGS,
 } from '../config.js'
@@ -149,6 +150,22 @@ export function sourceRegionMatrix(rows) {
   )
 }
 
+export function transposeMatrix(matrix) {
+  return {
+    total: matrix.total,
+    columns: matrix.rows.map((row) => ({ name: row.name, total: row.total })),
+    rows: matrix.columns.map((column) => ({
+      name: column.name,
+      total: column.total,
+      cells: Object.fromEntries(
+        matrix.rows
+          .filter((row) => row.cells[column.name] !== undefined)
+          .map((row) => [row.name, row.cells[column.name]])
+      ),
+    })),
+  }
+}
+
 export const formatCount = (value) => Number(value).toLocaleString(LOCALE)
 
-export const formatPercent = (value) => `${Number(value).toFixed(1)}%`
+export const formatPercent = (value) => `${Number(value).toFixed(PERCENT_DECIMALS)}%`

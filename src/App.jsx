@@ -3,16 +3,14 @@ import Sidebar from './components/Sidebar.jsx'
 import TopNavbar from './components/TopNavbar.jsx'
 import Footer from './components/Footer.jsx'
 import routes from './routes.js'
+import { APP_TITLE, APP_SUBTITLE, ROUTES } from './config.js'
 
 export default function App() {
   return (
     <div className="admin-shell">
       <Sidebar />
       <div className="main-panel">
-        <TopNavbar
-          title="GEO_APP · Data Quality & Quantity"
-          subtitle="Monitor data quality and event quantity across 19 geographic dataset tables"
-        />
+        <TopNavbar title={APP_TITLE} subtitle={APP_SUBTITLE} />
         <main className="content">
           <Routes>
             {routes.map((r) => {
@@ -25,8 +23,8 @@ export default function App() {
                 />
               )
             })}
-            <Route path="/" element={<Navigate to="/overview" replace />} />
-            <Route path="*" element={<Navigate to="/overview" replace />} />
+            <Route path="/" element={<Navigate to={ROUTES.overview} replace />} />
+            <Route path="*" element={<Navigate to={ROUTES.overview} replace />} />
           </Routes>
         </main>
         <Footer />

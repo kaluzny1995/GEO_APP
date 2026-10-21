@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { DANGER_LEVELS } from '../config.js'
 import { formatCount, formatPercent } from '../utils/eventCounts.js'
-import { chartColors, dangerColors, heatTextColor } from '../variables/charts.js'
+import { chartColors, dangerColors, heatIntensity, heatTextColor } from '../variables/charts.js'
 
 const capitalize = (value) => value.charAt(0).toUpperCase() + value.slice(1)
 
@@ -9,12 +9,12 @@ const sortValue = (row, key) => (key === 'count' ? row.count : row[key] ?? '')
 
 // Zero counts stay muted; non-zero values ramp from light gray to the bright
 // accent using a square-root scale so small counts still get a visible tint.
-const heatStyle = (value, max, color) => ({
-  color:
-    value > 0 && max > 0
-      ? heatTextColor(color, 0.25 + 0.75 * Math.sqrt(value / max))
-      : 'var(--bd-muted)',
-})
+const heatStyle = (value, max, color) => {
+  const intensity = heatIntensity(value, max)
+  return {
+    color: intensity === null ? 'var(--bd-muted)' : heatTextColor(color, intensity),
+  }
+}
 
 export default function EventCountsTable({ rows, dimension }) {
   const [sortKey, setSortKey] = useState('count')

@@ -41,6 +41,28 @@ describe('SourceRegionMatrix', () => {
     expect(totals[9]).toHaveTextContent('65 (100.0%)')
   })
 
+  it('swaps rows and columns when transposed', () => {
+    render(<SourceRegionMatrix rows={ROWS} transposed />)
+
+    expect(screen.getByRole('columnheader', { name: 'Region' })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'GDACS' })).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: 'All sources' })).toBeInTheDocument()
+
+    const usa = within(screen.getByRole('rowheader', { name: 'USA' }).closest('tr')).getAllByRole('cell')
+    expect(usa[0]).toHaveTextContent('—')
+    expect(usa[2]).toHaveTextContent('30 (46.2%)')
+    expect(usa[3]).toHaveTextContent('30 (46.2%)')
+
+    const waters = within(screen.getByRole('rowheader', { name: 'Waters/Oceans' }).closest('tr')).getAllByRole('cell')
+    expect(waters[0]).toHaveTextContent('10 (15.4%)')
+
+    const totals = within(screen.getByRole('rowheader', { name: 'All regions' }).closest('tr')).getAllByRole('cell')
+    expect(totals[0]).toHaveTextContent('10 (15.4%)')
+    expect(totals[1]).toHaveTextContent('5 (7.7%)')
+    expect(totals[2]).toHaveTextContent('50 (76.9%)')
+    expect(totals[3]).toHaveTextContent('65 (100.0%)')
+  })
+
   it('groups unknown country codes under Other', () => {
     render(<SourceRegionMatrix rows={[{ source_name: 'GDACS', country_code: 'XX', count: 3 }]} />)
 

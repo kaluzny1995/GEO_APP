@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { heatTextColor, passRateBarOptions } from './charts.js'
+import { HEAT_MIN_INTENSITY, heatIntensity, heatTextColor, passRateBarOptions } from './charts.js'
 
 describe('passRateBarOptions', () => {
   it('starts the y-axis just below the weakest rule', () => {
@@ -19,6 +19,18 @@ describe('passRateBarOptions', () => {
 
   it('defaults to a 95-100 axis for empty input', () => {
     expect(passRateBarOptions([]).scales.y.min).toBe(95)
+  })
+})
+
+describe('heatIntensity', () => {
+  it('returns null for zero values or zero maximum', () => {
+    expect(heatIntensity(0, 10)).toBeNull()
+    expect(heatIntensity(5, 0)).toBeNull()
+  })
+
+  it('ramps from the configured minimum to full intensity', () => {
+    expect(heatIntensity(1, 4)).toBeCloseTo(HEAT_MIN_INTENSITY + (1 - HEAT_MIN_INTENSITY) * 0.5)
+    expect(heatIntensity(4, 4)).toBe(1)
   })
 })
 
