@@ -19,6 +19,14 @@ export const ROUTER_FUTURE_FLAGS = {
   v7_relativeSplatPath: true,
 }
 
+// Download options shown for every downloadable table.
+export const DOWNLOAD_FORMATS = [
+  { id: 'csv', label: '.csv', mime: 'text/csv;charset=utf-8' },
+  { id: 'json', label: '.json', mime: 'application/json;charset=utf-8' },
+  { id: 'xml', label: '.xml', mime: 'application/xml;charset=utf-8' },
+  { id: 'txt', label: '.txt', mime: 'text/plain;charset=utf-8' },
+]
+
 // --- GEO_API ---
 // Override the API location with VITE_API_BASE at build/dev time.
 export const API_BASE = import.meta.env?.VITE_API_BASE || 'http://localhost:8000'

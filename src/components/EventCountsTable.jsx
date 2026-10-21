@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
-import { DANGER_LEVELS } from '../config.js'
+import DownloadMenu from './DownloadMenu.jsx'
+import { DANGER_LEVELS, PERCENT_DECIMALS } from '../config.js'
 import { formatCount, formatPercent } from '../utils/eventCounts.js'
 import { chartColors, dangerColors, heatIntensity, heatTextColor } from '../variables/charts.js'
 
 const capitalize = (value) => value.charAt(0).toUpperCase() + value.slice(1)
 
 const sortValue = (row, key) => (key === 'count' ? row.count : row[key] ?? '')
+const roundPercent = (value) => Number(Number(value).toFixed(PERCENT_DECIMALS))
 
 // Zero counts stay muted; non-zero values ramp from light gray to the bright
 // accent using a square-root scale so small counts still get a visible tint.
@@ -16,7 +18,7 @@ const heatStyle = (value, max, color) => {
   }
 }
 
-export default function EventCountsTable({ rows, dimension }) {
+export default function EventCountsTable({ rows, dimension, title }) {
   const [sortKey, setSortKey] = useState('count')
   const [sortDir, setSortDir] = useState(-1)
   const [query, setQuery] = useState('')
@@ -56,6 +58,35 @@ export default function EventCountsTable({ rows, dimension }) {
     [visible]
   )
 
+  const downloadTable = useMemo(
+    () => ({
+      title: title || (dimension === 'location' ? 'Locations by source' : 'Categories by source'),
+      filename: dimension === 'location' ? 'locations-by-source' : 'categories-by-source',
+      columns: [
+        'Source',
+        'Subsource',
+        primaryLabel,
+        secondaryLabel,
+        'Count',
+        '% of all',
+        ...DANGER_LEVELS.flatMap((level) => [capitalize(level), `${capitalize(level)} %`]),
+      ],
+      rows: visible.map((row) => [
+        row.source,
+        row.subsource,
+        row.primary,
+        row.secondary,
+        row.count,
+        roundPercent(row.share),
+        ...DANGER_LEVELS.flatMap((level) => [
+          row.levels[level],
+          roundPercent(row.levelShares[level]),
+        ]),
+      ]),
+    }),
+    [visible, dimension, title, primaryLabel, secondaryLabel]
+  )
+
   const toggle = (key) => {
     if (key === sortKey) {
       setSortDir((dir) => -dir)
@@ -69,13 +100,13 @@ export default function EventCountsTable({ rows, dimension }) {
 
   return (
     <div className="dq-table">
-      <div style={{ marginBottom: 12 }}>
+      <div className="table-toolbar">
         <input
           placeholder={filterHint}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          style={{ width: '100%', maxWidth: 420 }}
         />
+        <DownloadMenu table={downloadTable} />
       </div>
       <div className="table-wrap">
         <table>

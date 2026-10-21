@@ -3,10 +3,19 @@ import { NavLink } from 'react-router-dom'
 import EventCountsTable from '../components/EventCountsTable.jsx'
 import EventCategoryMatrix from '../components/EventCategoryMatrix.jsx'
 import SourceRegionMatrix from '../components/SourceRegionMatrix.jsx'
+import DownloadMenu from '../components/DownloadMenu.jsx'
 import Icon from '../components/Icon.jsx'
 import Tooltip from '../components/Tooltip.jsx'
 import { fetchEventCountsByCategory, fetchEventCountsByLocation } from '../api/eventCounts.js'
-import { eventCountRows, formatCount, formatPercent, summarizeEventCounts } from '../utils/eventCounts.js'
+import {
+  categorySourceMatrix,
+  eventCountRows,
+  formatCount,
+  formatPercent,
+  sourceRegionMatrix,
+  summarizeEventCounts,
+} from '../utils/eventCounts.js'
+import { matrixToTable } from '../utils/tableExport.js'
 import {
   DANGER_LEVELS,
   UNRATED_DANGER_RATINGS,
@@ -93,6 +102,36 @@ function EventCountsView({ dimension }) {
   const summary = useMemo(() => summarizeEventCounts(rows), [rows])
   const tableRows = useMemo(() => eventCountRows(rows, dimension), [rows, dimension])
 
+  const categoryDownload = useMemo(
+    () =>
+      matrixToTable({
+        matrix: categorySourceMatrix(rows),
+        transposed,
+        title: 'Event category by source',
+        filename: `event-category-by-source${transposed ? '-transposed' : ''}`,
+        rowLabel: 'Event category',
+        columnLabel: 'Source',
+        rowTotalLabel: 'All categories',
+        columnTotalLabel: 'All sources',
+      }),
+    [rows, transposed]
+  )
+
+  const locationDownload = useMemo(
+    () =>
+      matrixToTable({
+        matrix: sourceRegionMatrix(rows),
+        transposed,
+        title: 'Source by region',
+        filename: `source-by-region${transposed ? '-transposed' : ''}`,
+        rowLabel: 'Source',
+        columnLabel: 'Region',
+        rowTotalLabel: 'All sources',
+        columnTotalLabel: 'All regions',
+      }),
+    [rows, transposed]
+  )
+
   const retry = () => setRequestId((n) => n + 1)
 
   return (
@@ -155,10 +194,13 @@ function EventCountsView({ dimension }) {
             <div className="card" style={{ marginTop: 16 }}>
               <div className="card-title-row">
                 <h3>Event category by source</h3>
-                <TransposeButton
-                  transposed={transposed}
-                  onToggle={() => setTransposed((value) => !value)}
-                />
+                <div className="card-actions">
+                  <TransposeButton
+                    transposed={transposed}
+                    onToggle={() => setTransposed((value) => !value)}
+                  />
+                  <DownloadMenu table={categoryDownload} />
+                </div>
               </div>
               <p className="sub muted">
                 Heatmap of event counts (and % of all events) for each category and source;
@@ -172,10 +214,13 @@ function EventCountsView({ dimension }) {
             <div className="card" style={{ marginTop: 16 }}>
               <div className="card-title-row">
                 <h3>Source by region</h3>
-                <TransposeButton
-                  transposed={transposed}
-                  onToggle={() => setTransposed((value) => !value)}
-                />
+                <div className="card-actions">
+                  <TransposeButton
+                    transposed={transposed}
+                    onToggle={() => setTransposed((value) => !value)}
+                  />
+                  <DownloadMenu table={locationDownload} />
+                </div>
               </div>
               <p className="sub muted">
                 Heatmap of event counts (and % of all events) for each source and region group;
@@ -188,7 +233,7 @@ function EventCountsView({ dimension }) {
           <div className="card" style={{ marginTop: 16 }}>
             <h3>{config.tableTitle}</h3>
             <p className="sub muted">{config.tableSub}</p>
-            <EventCountsTable rows={tableRows} dimension={dimension} />
+            <EventCountsTable rows={tableRows} dimension={dimension} title={config.tableTitle} />
             <p className="sub muted" style={{ marginTop: 12 }}>
               Overall counts include events rated <code>{UNRATED_DANGER_RATINGS.join(' or ')}</code>,
               which are outside the four danger levels. Count text is heat-colored by magnitude

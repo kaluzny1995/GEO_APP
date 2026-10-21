@@ -4,11 +4,17 @@ import { MemoryRouter } from 'react-router-dom'
 import { EventCategoriesView, EventLocationsView } from './EventCountsView.jsx'
 import { fetchEventCountsByCategory, fetchEventCountsByLocation } from '../api/eventCounts.js'
 import { ROUTER_FUTURE_FLAGS } from '../config.js'
+import { downloadTable } from '../utils/tableExport.js'
 
 vi.mock('../api/eventCounts.js', () => ({
   fetchEventCountsByCategory: vi.fn(),
   fetchEventCountsByLocation: vi.fn(),
 }))
+
+vi.mock('../utils/tableExport.js', async () => {
+  const actual = await vi.importActual('../utils/tableExport.js')
+  return { ...actual, downloadTable: vi.fn() }
+})
 
 const CATEGORY_ROWS = [
   { source_name: 'GDACS', subsource_name: 'GWIS', event_category: 'fire', event_subcategory: 'wildfire', danger_rating: 'none', count: 50 },
@@ -43,6 +49,8 @@ describe('EventCountsView', () => {
     expect(screen.getAllByText('GDACS').length).toBeGreaterThan(0)
     expect(screen.getAllByText('fire').length).toBeGreaterThan(0)
     expect(screen.getByRole('heading', { name: 'Event category by source' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Download Event category by source' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Download Categories by source' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Source by region' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /back to overview/i })).toHaveClass('ms-auto')
     expect(screen.getByText(/outside the four danger levels/i)).toBeInTheDocument()
@@ -61,6 +69,8 @@ describe('EventCountsView', () => {
     expect(screen.getByText('US')).toBeInTheDocument()
     expect(screen.getByText('CA')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Source by region' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Download Source by region' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Download Locations by source' })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'All regions' })).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'Waters/Oceans' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Event category by source' })).not.toBeInTheDocument()
@@ -99,6 +109,26 @@ describe('EventCountsView', () => {
 
     expect(within(matrixTable()).getByRole('columnheader', { name: 'Event category' })).toBeInTheDocument()
     expect(transpose).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('downloads the matrix in its current transposition state', async () => {
+    fetchEventCountsByCategory.mockResolvedValue(CATEGORY_ROWS)
+    renderView(<EventCategoriesView />)
+
+    const heading = await screen.findByRole('heading', { name: 'Event category by source' })
+    const card = heading.closest('.card')
+    fireEvent.click(within(card).getByRole('button', { name: 'Transpose' }))
+
+    fireEvent.mouseOver(within(card).getByRole('button', { name: 'Download Event category by source' }))
+    fireEvent.click(within(card).getByRole('menuitem', { name: '.csv' }))
+
+    expect(downloadTable).toHaveBeenCalledTimes(1)
+    const [table, format] = downloadTable.mock.calls[0]
+    expect(format).toBe('csv')
+    expect(table.filename).toBe('event-category-by-source-transposed')
+    expect(table.columns[0]).toBe('Source')
+    expect(table.columns).toContain('fire')
+    expect(table.rows.find((row) => row[0] === 'GDACS')).toEqual(['GDACS', 80, 0, 80])
   })
 
   it('shows the API-down alert and retries the request', async () => {

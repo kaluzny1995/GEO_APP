@@ -273,6 +273,9 @@ describe('DataQualityView', () => {
     expect(screen.getByText('R-101')).toBeInTheDocument()
     expect(screen.getByText('Row validity (bad_row_pct)')).toBeInTheDocument()
     expect(screen.getByPlaceholderText(/Filter rules/)).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Download Data-quality table' })
+    ).toBeInTheDocument()
   })
 
   it('shows the overall score and health badge', async () => {

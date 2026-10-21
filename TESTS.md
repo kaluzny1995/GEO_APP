@@ -5,8 +5,8 @@ updated whenever the test suite or test counts change.
 
 ## Current status
 
-- **Test files:** 24
-- **Tests:** 167 passing
+- **Test files:** 26
+- **Tests:** 186 passing
 - **Framework:** Vitest 2.1.9 + jsdom
 - **Libraries:** React Testing Library, `@testing-library/user-event`,
   `@testing-library/jest-dom`
@@ -49,11 +49,11 @@ npx vitest run --reporter=verbose
 |------|-----------:|------:|
 | App shell and routing | 3 | 14 |
 | Overview page | 1 | 8 |
-| Data quality views and charts | 6 | 63 |
-| Event categories and locations | 4 | 17 |
-| Shared UI components | 4 | 14 |
-| Utilities, API clients and visual config | 6 | 51 |
-| **Total** | **24** | **167** |
+| Data quality views and charts | 6 | 65 |
+| Event categories and locations | 4 | 20 |
+| Shared UI components | 5 | 19 |
+| Utilities, API clients and visual config | 7 | 60 |
+| **Total** | **26** | **186** |
 
 ## App shell and routing (14)
 
@@ -104,14 +104,14 @@ instructions, event-count explanation and dataset inventory.
 - describes the event count tabs
 - lists available datasets
 
-## Data quality views and charts (63)
+## Data quality views and charts (65)
 
 ### `src/views/DataQualityView.test.jsx` (26)
 
 Covers initial loading, table/date selection, API discovery and caching,
 gauges, KPI cards, charts, rule table, score badge and error states.
 
-- loads the default table and overall snapshot on mount
+- loads the default table and overall snapshot on mount and renders its download menu
 - loads metrics when the table dropdown changes
 - renders the title, dataset name and date
 - renders back to overview link
@@ -138,12 +138,14 @@ gauges, KPI cards, charts, rule table, score badge and error states.
 - fetches the selected snapshot via the per-date endpoint
 - caches the discovered date list per table (single probe request)
 
-### `src/components/DataQualityTable.test.jsx` (6)
+### `src/components/DataQualityTable.test.jsx` (8)
 
-Covers rule-table headers, rows, filtering, sorting and status badges.
+Covers rule-table headers, rows, filtering, sorting, status badges and downloads.
 
 - renders table with headers
 - renders all rows
+- renders a download menu for the table
+- downloads the filtered table rows
 - renders filter input
 - filters rows by query
 - sorts by passRate when clicking header
@@ -201,25 +203,28 @@ Covers the legacy charts view header, selector and chart rendering.
 - calls onDatasetChange when selecting different dataset
 - renders QualityCharts
 
-## Event categories and locations (17)
+## Event categories and locations (20)
 
-### `src/views/EventCountsView.test.jsx` (4)
+### `src/views/EventCountsView.test.jsx` (5)
 
-Covers category/location loading, summary rendering, transpose behavior and
-API-down retry.
+Covers category/location loading, summary rendering, transpose behavior,
+downloads and API-down retry.
 
 - loads and summarizes event categories
 - loads and summarizes event locations
 - transposes the category matrix and restores the original layout
+- downloads the matrix in its current transposition state
 - shows the API-down alert and retries the request
 
-### `src/components/EventCountsTable.test.jsx` (6)
+### `src/components/EventCountsTable.test.jsx` (8)
 
-Covers event-count rows, heat coloring, location labels, filtering, empty state
-and sorting.
+Covers event-count rows, heat coloring, location labels, filtering, empty state,
+sorting and downloads.
 
 - renders category rows with overall share and danger-level cells
 - heat-colors non-zero count text and mutes zero counts
+- renders a download menu with the table title
+- downloads the filtered table with count and share columns
 - renders location column labels
 - filters rows by the search query
 - shows an empty message when nothing matches
@@ -243,7 +248,7 @@ empty state.
 - groups unknown country codes under Other
 - shows an empty message when there are no counts
 
-## Shared UI components (14)
+## Shared UI components (19)
 
 ### `src/components/Tooltip.test.jsx` (2)
 
@@ -252,13 +257,25 @@ Covers tooltip visibility on hover and keyboard focus, and Escape dismissal.
 - shows the label on hover and hides it when the pointer leaves
 - shows the label on focus and hides it on Escape
 
-### `src/components/Icon.test.jsx` (3)
+### `src/components/Icon.test.jsx` (4)
 
-Covers the local SVG icon component and unknown-icon fallback.
+Covers the local SVG icon component, download/file icons and unknown-icon
+fallback.
 
 - renders the circular-arrows-couple icon as a decorative SVG
 - accepts a custom size and class name
+- renders download and file-format icons
 - renders nothing for an unknown icon name
+
+### `src/components/DownloadMenu.test.jsx` (4)
+
+Covers hover/focus opening, all four formats, selection, Escape and outside-click
+dismissal.
+
+- opens on hover, lists all formats and downloads the selected one
+- opens on focus and closes on Escape
+- closes when the pointer leaves the menu area
+- closes when clicking outside
 
 ### `src/components/StatCard.test.jsx` (4)
 
@@ -279,7 +296,22 @@ Covers badge tones and children rendering.
 - renders with bad tone
 - renders children
 
-## Utilities, API clients and visual config (51)
+## Utilities, API clients and visual config (60)
+
+### `src/utils/tableExport.test.js` (9)
+
+Covers CSV/JSON/XML/TXT serialization, escaping, filenames, matrix orientation
+and blob link downloads.
+
+- serializes CSV with headers, escaping and empty values
+- serializes JSON as an array of row objects
+- serializes XML with escaped fields
+- serializes TXT as tab-separated rows
+- rejects unsupported formats
+- builds safe filenames
+- builds a matrix export in the displayed orientation
+- builds a transposed matrix export
+- creates a typed blob link, clicks it and revokes the URL
 
 ### `src/utils/eventCounts.test.js` (11)
 
@@ -374,3 +406,7 @@ changes:
 - Transpose toggle: in headless Chrome, the icon remains visible in both the
   default white state and the pressed pink state on hover, rotates 180°, and
   shows the “Transpose” tooltip.
+- Download menus: on Data Quality, Event Categories and Event Locations, hover
+  the download icon, confirm all four formats appear with file icons, and
+  confirm selecting a format downloads the current table (including the
+  transposed matrix orientation after using the transpose toggle).

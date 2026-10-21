@@ -1,6 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import EventCountsTable from './EventCountsTable.jsx'
+import { downloadTable } from '../utils/tableExport.js'
+
+vi.mock('../utils/tableExport.js', () => ({
+  downloadTable: vi.fn(),
+}))
 
 const rows = [
   {
@@ -28,6 +33,10 @@ const rows = [
 ]
 
 describe('EventCountsTable', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('renders category rows with overall share and danger-level cells', () => {
     render(<EventCountsTable rows={rows} dimension="category" />)
 
@@ -52,6 +61,47 @@ describe('EventCountsTable', () => {
     expect(cells[6].style.color).toBe('rgb(0, 242, 195)')
     expect(cells[7].style.color).toBe('var(--bd-muted)')
     expect(cells[8].style.color).toBe('rgb(255, 141, 114)')
+  })
+
+  it('renders a download menu with the table title', () => {
+    render(<EventCountsTable rows={rows} dimension="category" title="Categories by source" />)
+    expect(
+      screen.getByRole('button', { name: 'Download Categories by source' })
+    ).toBeInTheDocument()
+  })
+
+  it('downloads the filtered table with count and share columns', () => {
+    render(<EventCountsTable rows={rows} dimension="category" title="Categories by source" />)
+
+    fireEvent.change(screen.getByPlaceholderText(/filter by source/i), {
+      target: { value: 'storm' },
+    })
+    fireEvent.mouseOver(screen.getByRole('button', { name: 'Download Categories by source' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: '.json' }))
+
+    expect(downloadTable).toHaveBeenCalledTimes(1)
+    const [table, format] = downloadTable.mock.calls[0]
+    expect(format).toBe('json')
+    expect(table.filename).toBe('categories-by-source')
+    expect(table.columns).toEqual([
+      'Source',
+      'Subsource',
+      'Category',
+      'Subcategory',
+      'Count',
+      '% of all',
+      'Low',
+      'Low %',
+      'Medium',
+      'Medium %',
+      'High',
+      'High %',
+      'Extreme',
+      'Extreme %',
+    ])
+    expect(table.rows).toHaveLength(1)
+    expect(table.rows[0][0]).toBe('EONET')
+    expect(table.rows[0][4]).toBe(10)
   })
 
   it('renders location column labels', () => {

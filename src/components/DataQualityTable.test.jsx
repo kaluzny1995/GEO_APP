@@ -1,7 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import DataQualityTable from './DataQualityTable.jsx'
 import { LOCALE } from '../config.js'
+import { downloadTable } from '../utils/tableExport.js'
+
+vi.mock('../utils/tableExport.js', () => ({
+  downloadTable: vi.fn(),
+}))
 
 const mockRules = [
   { id: 'R-101', rule: 'latitude in [-90, 90]', scope: 'places', passRate: 99.2, fails: 412, status: 'pass' },
@@ -13,6 +18,10 @@ const mockRules = [
 ]
 
 describe('DataQualityTable', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('renders table with headers', () => {
     render(<DataQualityTable rows={mockRules} />)
     expect(screen.getByText('Rule ID')).toBeInTheDocument()
@@ -35,6 +44,31 @@ describe('DataQualityTable', () => {
     expect(screen.getAllByText('pass')).toHaveLength(3)
     expect(screen.getAllByText('warn')).toHaveLength(2)
     expect(screen.getAllByText('fail')).toHaveLength(1)
+  })
+
+  it('renders a download menu for the table', () => {
+    render(<DataQualityTable rows={mockRules} tableName="eonet_event" fileDate="overall" />)
+    expect(
+      screen.getByRole('button', { name: 'Download Data-quality table' })
+    ).toBeInTheDocument()
+  })
+
+  it('downloads the filtered table rows', () => {
+    render(<DataQualityTable rows={mockRules} tableName="eonet_event" fileDate="overall" />)
+
+    fireEvent.change(screen.getByPlaceholderText(/Filter rules/), {
+      target: { value: 'latitude' },
+    })
+    fireEvent.mouseOver(screen.getByRole('button', { name: 'Download Data-quality table' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: '.csv' }))
+
+    expect(downloadTable).toHaveBeenCalledTimes(1)
+    const [table, format] = downloadTable.mock.calls[0]
+    expect(format).toBe('csv')
+    expect(table.filename).toBe('data-quality-table-eonet_event-overall')
+    expect(table.columns).toEqual(['Rule ID', 'Rule', 'Scope', 'Pass %', 'Fails', 'Status'])
+    expect(table.rows).toHaveLength(1)
+    expect(table.rows[0][0]).toBe('R-101')
   })
 
   it('renders filter input', () => {

@@ -29,6 +29,10 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
   Waters/Oceans and Antarctica; see `COUNTRY_REGIONS` in `src/config.js`)
 - both heatmap matrices can be transposed (rows/columns swapped) with the
   icon toggle in the card header; hover it to see the “Transpose” tooltip
+- the data-quality table, both heatmap matrices and both category/location
+  tables have a download menu with CSV, JSON, XML and TXT options. Tables export
+  the rows currently visible after filtering/sorting; matrix exports follow the
+  current row/column orientation and include totals.
 - Data comes from **GEO_API** at `http://localhost:8000` — see
   [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for the endpoint contract,
   long-format metrics, validation rules and dimension mapping.
@@ -39,7 +43,8 @@ App-wide values (branding, routes, React Router v7 future flags, API base URL
 and endpoint paths, request timeout, probe window, default table, tracked table
 names, metric names and rule
 IDs, score/rule thresholds, labels, number/percent/score formatting, danger
-levels, default heatmap orientations and the country → region mapping) live in
+levels, default heatmap orientations, download formats and the country → region
+mapping) live in
 [`src/config.js`](src/config.js); visual chart/heatmap defaults live in
 [`src/variables/charts.js`](src/variables/charts.js). The
 API base URL defaults to
@@ -86,8 +91,8 @@ npm run lint     # ESLint
 ## Testing
 
 The full automated test inventory, including every test case and manual browser
-checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 24
-test files and 167 passing tests. `npm test` runs the suite once; use
+checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 26
+test files and 186 passing tests. `npm test` runs the suite once; use
 `npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
 
 ## Project structure
@@ -109,9 +114,10 @@ GEO_APP/
 │   ├── api/dataQuality.js   # GEO_API data-quality client (date discovery)
 │   ├── api/eventCounts.js   # GEO_API event-count endpoints
 │   ├── views/               # Landing, DataQualityView, EventCountsView, …
-│   ├── components/          # Sidebar, GaugeCard, tables, matrix components, …
+│   ├── components/          # Sidebar, GaugeCard, tables, DownloadMenu, matrices, …
 │   ├── utils/quality.js     # overallScore / toneFor / changeTone helpers
 │   ├── utils/eventCounts.js # event-count grouping, region lookup, matrices
+│   ├── utils/tableExport.js # CSV/JSON/XML/TXT serializers and file downloads
 │   ├── variables/charts.js  # chart colors and base options
 │   ├── test/                # Vitest setup (Chart.js/CSS mocks) + console checks
 │   └── assets/css/bd-vite.css  # dark theme (original, inspired by Black Dashboard)

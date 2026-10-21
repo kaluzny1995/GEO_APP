@@ -469,7 +469,7 @@ export default function DataQualityView() {
             <div className="card table-card">
               <h3>Data-quality table</h3>
               <p className="sub muted">Rule-level checks for {tableName} on {fileDate}</p>
-              <DataQualityTable rows={rules} />
+              <DataQualityTable rows={rules} tableName={tableName} fileDate={fileDate} />
             </div>
             <div className="card">
               <h3>Quality gauges</h3>

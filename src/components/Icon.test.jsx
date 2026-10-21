@@ -20,6 +20,18 @@ describe('Icon', () => {
     expect(container.querySelector('svg')).toHaveClass('icon', 'transpose-icon')
   })
 
+  it('renders download and file-format icons', () => {
+    const { container, rerender } = render(<Icon name="download" />)
+    expect(container.querySelector('svg')).toHaveClass('icon-download')
+
+    for (const format of ['csv', 'json', 'xml', 'txt']) {
+      rerender(<Icon name={`file-${format}`} />)
+      const svg = container.querySelector('svg')
+      expect(svg).toHaveClass(`icon-file-${format}`)
+      expect(svg.querySelector('text')).toHaveTextContent(format.toUpperCase())
+    }
+  })
+
   it('renders nothing for an unknown icon name', () => {
     const { container } = render(<Icon name="missing" />)
     expect(container).toBeEmptyDOMElement()
