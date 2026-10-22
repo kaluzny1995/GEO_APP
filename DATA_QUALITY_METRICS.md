@@ -205,15 +205,17 @@ The `/data-quantity` view reuses `GET /data-quality/{table_name}/{file_date}` an
 reads the `total_records` metric for all 19 tables. Snapshot dates are discovered
 from `union_etl`'s `file-dates` probe; the view defaults to the latest dated
 snapshot and falls back to `overall` when only the aggregate is available. The
-19 count requests run in parallel.
+`overall` aggregate is only refreshed when `DATA_QUALITY` is run with
+`--overall`; scheduled data-quality jobs write dated rows only, so the aggregate
+can lag. The 19 count requests run in parallel.
 
 For each configured plain → ETL pair (`TABLE_FLOW` in `src/config.js`):
 
 - `difference = plain total_records − ETL total_records`
 - a positive difference is shown as “N filtered out”
 - zero is shown as “No rows filtered”
-- a negative difference is shown as “N more in ETL” (the overall aggregate can
-  contain more ETL rows than the plain snapshot, for example EONET)
+- a negative difference is shown as “N more in ETL”; on the `overall` snapshot
+  it can also mean the aggregate is stale, since it is refreshed separately
 - if either count is missing, the arrow badge says “No count” and the missing
   card(s) show an italic red “no data” value
 
