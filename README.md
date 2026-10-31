@@ -133,6 +133,15 @@ GEO_APP/
 │   └── assets/css/bd-vite.css  # dark theme (original, inspired by Black Dashboard)
 ```
 
+## Related Projects
+
+GEO_APP is the presentation layer of the GIS data pipeline. The five projects sit as siblings under `GeographicData/`:
+
+- **[GEO_API](../GEO_API)** — the FastAPI backend this dashboard talks to (`src/config.js` → `http://localhost:8000`); provides the `/data-quality/...` and `/event-counts/...` endpoints.
+- **[GEO_ETL](../GEO_ETL)** — PySpark ETL that writes the `geo.data_quality` metrics and `geo.union_etl` counts GEO_API serves.
+- **[GEO_Download](../GEO_Download)** — fetches the raw source data into dated CSVs.
+- **[GEO_E2E](../GEO_E2E)** — Airflow orchestrator that schedules the download and the ETL, and hosts the shared Supabase credentials setup.
+
 ## Credits
 
 - UI inspiration: **Black Dashboard React v1.2.2 © 2023 Creative Tim, MIT**  
