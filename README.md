@@ -17,13 +17,14 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
   to `avalanche_org` / `overall`, which load automatically when the view opens.
   The selection lives in component state (the URL always stays `/data-quality`);
   changing either dropdown reloads the metrics. The snapshot list is discovered
-  from the API (last 120 days + `overall`) and cached per table.
+  from the API (last 120 days + `overall`, probed in batches of 100 dates — the
+  API's per-request cap) and cached per table.
 - `/data-quantity` — row-quantity flow diagram for the nine plain source tables,
   their nine ETL tables and `union_etl`. The snapshot selector defaults to the
-  latest dated snapshot (falling back to `overall`) and reloads all 19
-  `total_records` counts. Each plain → ETL arrow reports rows filtered out (or
-  how many more rows the ETL table has), and every ETL table is connected to the
-  union card with an SVG flow curve.
+  latest dated snapshot (falling back to `overall`) and reloads all 19 actual
+  `COUNT(*)` values straight from the database. Each plain → ETL arrow reports
+  rows filtered out (or how many more rows the ETL table has), and every ETL
+  table is connected to the union card with an SVG flow curve.
 - `/event-categories` — event counts by event category/subcategory, broken down
   by source/subsource: overall count and share of all events, plus the count and
   share for each of the four danger levels (low, medium, high, extreme); count
@@ -62,9 +63,18 @@ environment variable.
 The app expects GEO_API running at `http://localhost:8000` (the base URL is set
 in `src/config.js`). Data-quality snapshots come from the `/data-quality/...`
 endpoints; see [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for their
-contract. The Data Quantity view reads `total_records` from the same endpoint
-for all 19 tables and discovers snapshots by probing the union table's
-`file-dates` endpoint.
+contract. The Data Quantity view uses the dedicated quantity endpoints:
+
+- `GET /data-quantity/dates` — every snapshot date present in `geo.union_etl`
+  (plus `overall`)
+- `GET /data-quantity/{file_date}` — the actual `COUNT(*)` of each of the 19
+  tracked tables for that snapshot
+
+Those counts are read from the tables themselves, so they always match the
+database. The view deliberately does **not** reuse `total_records` from
+`geo.data_quality`: that metric is written by GEO_ETL and can lag behind later
+backfills (for example, `union_etl` gained IBTRACS rows after its last metric
+run), which made the union card disagree with the table.
 
 Event counts come from two long-format endpoints:
 
@@ -100,7 +110,7 @@ npm run lint     # ESLint
 
 The full automated test inventory, including every test case and manual browser
 checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 30
-test files and 207 passing tests. `npm test` runs the suite once; use
+test files and 212 passing tests. `npm test` runs the suite once; use
 `npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
 
 ## Project structure
@@ -120,7 +130,7 @@ GEO_APP/
 │   ├── routes.js            # route table (overview, quality, quantity, event tabs)
 │   ├── api/client.js        # shared fetch + timeout / API-down handling
 │   ├── api/dataQuality.js   # GEO_API data-quality client (date discovery)
-│   ├── api/dataQuantity.js  # parallel total_records fetcher for the flow diagram
+│   ├── api/dataQuantity.js  # actual table-count fetcher for the flow diagram
 │   ├── api/eventCounts.js   # GEO_API event-count endpoints
 │   ├── views/               # Landing, DataQualityView, DataQuantityView, …
 │   ├── components/          # Sidebar, GaugeCard, tables, DownloadMenu, diagram, …

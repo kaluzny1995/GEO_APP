@@ -6,7 +6,6 @@ import {
   formatQuantity,
   quantityDifference,
   sumQuantities,
-  totalRecordsFromMetrics,
 } from './dataQuantity.js'
 import { TABLE_FLOW, TABLE_NAMES } from '../config.js'
 
@@ -21,17 +20,6 @@ describe('dataQuantity utils', () => {
     expect(formatQuantity(undefined)).toBe('—')
     expect(formatQuantity('')).toBe('—')
     expect(formatQuantity('not-a-number')).toBe('—')
-  })
-
-  it('extracts total_records from long-format metric rows', () => {
-    expect(totalRecordsFromMetrics([
-      { metric: 'bad_row_pct', value: 1.5 },
-      { metric: 'total_records', value: '145' },
-    ])).toBe(145)
-    expect(totalRecordsFromMetrics([{ metric: 'total_records', value: 0 }])).toBe(0)
-    expect(totalRecordsFromMetrics([{ metric: 'total_records', value: null }])).toBeNull()
-    expect(totalRecordsFromMetrics([{ metric: 'bad_row_pct', value: 3 }])).toBeNull()
-    expect(totalRecordsFromMetrics(null)).toBeNull()
   })
 
   it('sums known quantities and ignores missing values', () => {

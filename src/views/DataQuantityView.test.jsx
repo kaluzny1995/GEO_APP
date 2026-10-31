@@ -2,15 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import DataQuantityView from './DataQuantityView.jsx'
-import { fetchTableIndex } from '../api/dataQuality.js'
-import { fetchDataQuantities } from '../api/dataQuantity.js'
+import { fetchDataQuantityDates, fetchDataQuantities } from '../api/dataQuantity.js'
 import { ROUTER_FUTURE_FLAGS, TABLE_NAMES } from '../config.js'
 
-vi.mock('../api/dataQuality.js', () => ({
-  fetchTableIndex: vi.fn(),
-}))
-
 vi.mock('../api/dataQuantity.js', () => ({
+  fetchDataQuantityDates: vi.fn(),
   fetchDataQuantities: vi.fn(),
 }))
 
@@ -35,9 +31,7 @@ describe('DataQuantityView', () => {
     counts.eonet_event_etl = 217
     counts.union_etl = 796
 
-    fetchTableIndex.mockResolvedValue({
-      dates: ['2026-10-08', 'overall', '2026-10-09'],
-    })
+    fetchDataQuantityDates.mockResolvedValue(['2026-10-08', 'overall', '2026-10-09'])
     fetchDataQuantities.mockImplementation(async () => ({ ...counts }))
   })
 
@@ -46,16 +40,16 @@ describe('DataQuantityView', () => {
 
     expect(await screen.findByText('Snapshot 2026-10-09')).toBeInTheDocument()
     expect(screen.getByLabelText('Snapshot date')).toHaveValue('2026-10-09')
-    expect(fetchTableIndex).toHaveBeenCalledWith('union_etl', 'overall')
+    expect(fetchDataQuantityDates).toHaveBeenCalledTimes(1)
     await waitFor(() =>
-      expect(fetchDataQuantities).toHaveBeenCalledWith(TABLE_NAMES, '2026-10-09')
+      expect(fetchDataQuantities).toHaveBeenCalledWith('2026-10-09')
     )
     expect(
       screen.getByText(/Showing row quantities for the 2026-10-09 snapshot across 19 tables\./)
     ).toBeInTheDocument()
     expect(
-      screen.queryByText(/Each plain table is compared with its ETL table/)
-    ).not.toBeInTheDocument()
+      screen.getByText(/Counts are read directly from each database table/)
+    ).toBeInTheDocument()
   })
 
   it('lists the available dates in sorted order and reloads on selection', async () => {
@@ -71,7 +65,7 @@ describe('DataQuantityView', () => {
 
     fireEvent.change(select, { target: { value: 'overall' } })
     await waitFor(() =>
-      expect(fetchDataQuantities).toHaveBeenCalledWith(TABLE_NAMES, 'overall')
+      expect(fetchDataQuantities).toHaveBeenCalledWith('overall')
     )
     expect(await screen.findByText('Snapshot overall')).toBeInTheDocument()
     expect(
@@ -90,20 +84,20 @@ describe('DataQuantityView', () => {
   })
 
   it('shows an error and retries the request', async () => {
-    fetchTableIndex.mockRejectedValueOnce(new Error('Network down'))
+    fetchDataQuantityDates.mockRejectedValueOnce(new Error('Network down'))
     renderView()
 
     expect(await screen.findByText('Network down')).toBeInTheDocument()
     fireEvent.click(screen.getByText('Retry'))
     expect(await screen.findByText('Snapshot 2026-10-09')).toBeInTheDocument()
-    expect(fetchTableIndex).toHaveBeenCalledTimes(3)
+    expect(fetchDataQuantityDates).toHaveBeenCalledTimes(2)
   })
 
   it('shows an API-down alert when the API is unreachable', async () => {
     const err = Object.assign(new Error('API server is down! Please check the API server.'), {
       isConnectionError: true,
     })
-    fetchTableIndex.mockRejectedValueOnce(err)
+    fetchDataQuantityDates.mockRejectedValueOnce(err)
     renderView()
 
     const alert = await screen.findByRole('alert')
@@ -112,10 +106,10 @@ describe('DataQuantityView', () => {
   })
 
   it('shows a message when no snapshots are available', async () => {
-    fetchTableIndex.mockResolvedValueOnce({ dates: [] })
+    fetchDataQuantityDates.mockResolvedValueOnce([])
     renderView()
 
-    expect(await screen.findByText(/no data-quality snapshots available for union_etl/i))
+    expect(await screen.findByText(/no data-quantity snapshots available for union_etl/i))
       .toBeInTheDocument()
   })
 })

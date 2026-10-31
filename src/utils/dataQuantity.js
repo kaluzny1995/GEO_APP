@@ -1,17 +1,9 @@
-import { LOCALE, QUALITY_METRICS, TABLE_FLOW } from '../config.js'
+import { LOCALE, TABLE_FLOW } from '../config.js'
 
 export const formatQuantity = (value) => {
   if (value === null || value === undefined || value === '') return '—'
   const count = Number(value)
   return Number.isFinite(count) ? count.toLocaleString(LOCALE) : '—'
-}
-
-export function totalRecordsFromMetrics(metrics) {
-  if (!Array.isArray(metrics)) return null
-  const row = metrics.find((metric) => metric?.metric === QUALITY_METRICS.totalRecords)
-  if (!row || row.value === null || row.value === undefined || row.value === '') return null
-  const value = Number(row.value)
-  return Number.isFinite(value) ? value : null
 }
 
 export function sumQuantities(values) {

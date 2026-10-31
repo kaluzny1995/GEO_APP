@@ -346,14 +346,17 @@ describe('DataQualityView', () => {
     ))
   })
 
-  it('caches the discovered date list per table (single probe request)', async () => {
+  it('caches the discovered date list per table (no extra probe on re-render)', async () => {
     const probeCalls = () => mockFetch.mock.calls.filter(([u]) => String(u).includes('/file-dates')).length
     const { unmount } = render(<DataQualityView />)
     await screen.findByText('Quality gauges')
-    expect(probeCalls()).toBe(1)
+    // The probe is split into batches (GEO_API caps /file-dates at 100 dates),
+    // so a single discovery is more than one request — but a fixed number.
+    const firstProbeCount = probeCalls()
+    expect(firstProbeCount).toBeGreaterThan(0)
     unmount()
     render(<DataQualityView />)
     await screen.findByText('Quality gauges')
-    expect(probeCalls()).toBe(1)
+    expect(probeCalls()).toBe(firstProbeCount)
   })
 })

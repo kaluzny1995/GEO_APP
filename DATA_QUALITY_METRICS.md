@@ -15,15 +15,25 @@ Base URL: `http://localhost:8000`
 | `GET /data-quality/{table_name}`                      | Overall snapshot (`file_date=overall`)   |
 | `GET /data-quality/{table_name}/{file_date}`          | Metrics for one snapshot date            |
 | `GET /data-quality/{table_name}/file-dates?file_dates=overall,2024-10-15` | Metrics for the requested snapshot dates |
+| `GET /data-quantity/dates`                            | Snapshot dates present in `geo.union_etl` (then `overall`) |
+| `GET /data-quantity/{file_date}`                      | Actual `COUNT(*)` of all 19 tracked tables for a snapshot |
 
-There is no endpoint that enumerates available dates. The app probes a rolling
-window of the **last 120 days** (plus `overall` and the currently selected date)
-with a single `file_dates` query and keeps the `file_date` values that return
-rows. The probe runs when the view loads (for the default selection) and is
-re-run when the user switches tables.
+For the data-quality view, there is no endpoint that enumerates available dates
+in the UI's probe path: the app probes a rolling window of the **last 120 days**
+(plus `overall` and the currently selected date) and keeps the `file_date`
+values that return rows. Because GEO_API rejects more than **100** dates per
+request (`422 At most 100 file_dates may be requested.`), the probe is split
+into batches of at most `FILE_DATES_LIMIT` (100) dates and the responses are
+merged — a 120-day window is two requests (100 + 22). The probe runs when the
+view loads (for the default selection) and is re-run when the user switches
+tables.
 The result is cached per table for the session, so switching snapshots does not
-re-probe. As of Oct 2026, all 19 tables have daily snapshots from `2026-09-01`
-to `2026-10-09` plus `overall`.
+re-probe. As of Oct 2026, the tables have daily snapshots from `2026-09-01` to
+`2026-10-26` (`usgs_volcano` starts on `2026-09-09`) plus `overall`.
+
+The data-quantity view does **not** probe: it calls `GET /data-quantity/dates`,
+which reads the distinct `file_date` values from `geo.union_etl` itself, so the
+list always matches the table.
 
 ### Example
 
@@ -201,27 +211,32 @@ Derived from the underlying metric percentage:
 
 ## Data Quantity Flow (frontend)
 
-The `/data-quantity` view reuses `GET /data-quality/{table_name}/{file_date}` and
-reads the `total_records` metric for all 19 tables. Snapshot dates are discovered
-from `union_etl`'s `file-dates` probe; the view defaults to the latest dated
-snapshot and falls back to `overall` when only the aggregate is available. The
-`overall` aggregate is only refreshed when `DATA_QUALITY` is run with
-`--overall`; scheduled data-quality jobs write dated rows only, so the aggregate
-can lag. The 19 count requests run in parallel.
+The `/data-quantity` view calls `GET /data-quantity/{file_date}` and reads the
+actual `COUNT(*)` of all 19 tracked tables. Snapshot dates come from
+`GET /data-quantity/dates` (the distinct `file_date` values in
+`geo.union_etl`, plus `overall`); the view defaults to the latest dated snapshot
+and falls back to `overall` when only the aggregate is available.
+
+These counts are deliberately **not** the `total_records` metric from
+`geo.data_quality`. That metric is written by GEO_ETL and can lag behind later
+backfills — in the October 2026 data, `union_etl`'s metric said 684 rows for
+`2026-10-26` while the table held 717, because IBTRACS rows arrived after the
+metric run. A direct `COUNT(*)` always matches the database.
 
 For each configured plain → ETL pair (`TABLE_FLOW` in `src/config.js`):
 
-- `difference = plain total_records − ETL total_records`
+- `difference = plain count − ETL count`
 - a positive difference is shown as “N filtered out”
 - zero is shown as “No rows filtered”
-- a negative difference is shown as “N more in ETL”; on the `overall` snapshot
-  it can also mean the aggregate is stale, since it is refreshed separately
+- a negative difference is shown as “N more in ETL”
 - if either count is missing, the arrow badge says “No count” and the missing
   card(s) show an italic red “no data” value
 
 All ETL tables are connected to the `union_etl` card in the diagram; the curves
 are illustrative and do not imply per-table additive totals. The union card
-shows `union_etl`'s own `total_records` for the same snapshot.
+shows `union_etl`'s own count for the same snapshot, which equals the sum of the
+nine ETL counts for that snapshot (the union is a vertical stack of those
+tables).
 
 ## Datasets
 

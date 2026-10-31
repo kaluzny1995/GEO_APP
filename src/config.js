@@ -32,13 +32,19 @@ export const DOWNLOAD_FORMATS = [
 // Override the API location with VITE_API_BASE at build/dev time.
 export const API_BASE = import.meta.env?.VITE_API_BASE || 'http://localhost:8000'
 export const API_TIMEOUT_MS = 8000
-// Rolling window probed to discover snapshot dates (the API has no list-dates
-// endpoint).
+// Rolling window probed by the data-quality view to discover snapshot dates.
+// The data-quantity view uses the authoritative /data-quantity/dates endpoint.
 export const PROBE_WINDOW_DAYS = 120
+// GEO_API rejects /data-quality/{table}/file-dates with more than 100 dates
+// (422 "At most 100 file_dates may be requested."), so the probe is split into
+// batches of at most this many dates and the responses are merged.
+export const FILE_DATES_LIMIT = 100
 export const API_DOWN_MESSAGE = 'API server is down! Please check the API server.'
 export const API_PATHS = {
   dataQuality: '/data-quality',
   dataQualityFileDates: 'file-dates',
+  dataQuantity: '/data-quantity',
+  dataQuantityDates: 'dates',
   eventCountsCategory: '/event-counts/category',
   eventCountsLocation: '/event-counts/location',
 }

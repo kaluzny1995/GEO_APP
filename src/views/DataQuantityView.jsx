@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import DataQuantityDiagram from '../components/DataQuantityDiagram.jsx'
-import { fetchTableIndex } from '../api/dataQuality.js'
-import { fetchDataQuantities } from '../api/dataQuantity.js'
+import { fetchDataQuantityDates, fetchDataQuantities } from '../api/dataQuantity.js'
 import { buildQuantityFlow } from '../utils/dataQuantity.js'
 import { OVERALL_DATE, ROUTES, TABLE_NAMES, UNION_TABLE } from '../config.js'
 
@@ -14,6 +13,9 @@ export default function DataQuantityView() {
   const [error, setError] = useState(null)
   const [isApiDown, setIsApiDown] = useState(false)
   const [requestId, setRequestId] = useState(0)
+  // The date list is stable for the lifetime of the view; cache it so changing
+  // the snapshot does not re-fetch it (the old data-quality probe was cached too).
+  const datesRef = useRef(null)
 
   useEffect(() => {
     let cancelled = false
@@ -23,16 +25,17 @@ export default function DataQuantityView() {
       setError(null)
       setIsApiDown(false)
       try {
-        const index = await fetchTableIndex(UNION_TABLE, OVERALL_DATE)
-        if (cancelled) return
+        let dates = datesRef.current
+        if (!dates) {
+          dates = await fetchDataQuantityDates()
+          if (cancelled) return
+          if (dates.length > 0) datesRef.current = dates
+        }
 
-        const dates = Array.isArray(index?.dates)
-          ? index.dates.filter((date) => typeof date === 'string' && date.length > 0)
-          : []
         if (dates.length === 0) {
           setAvailableDates([])
           setCounts({})
-          setError(`No data-quality snapshots available for ${UNION_TABLE}.`)
+          setError(`No data-quantity snapshots available for ${UNION_TABLE}.`)
           setIsLoading(false)
           return
         }
@@ -51,7 +54,7 @@ export default function DataQuantityView() {
           return
         }
 
-        const nextCounts = await fetchDataQuantities(TABLE_NAMES, targetDate)
+        const nextCounts = await fetchDataQuantities(targetDate)
         if (cancelled) return
         setCounts(nextCounts && typeof nextCounts === 'object' ? nextCounts : {})
         setIsLoading(false)
@@ -130,6 +133,7 @@ export default function DataQuantityView() {
             <span className="quantity-snapshot">Snapshot {fileDate}</span>
           </div>
           <p className="sub muted">
+            Counts are read directly from each database table for the selected snapshot.
             Each row compares a plain table with its ETL table. Arrow badges show rows
             removed by filtering/deduplication; when the ETL table has more rows than the
             selected plain snapshot, the badge reports how many more. Every ETL table

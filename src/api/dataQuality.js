@@ -4,7 +4,7 @@
 //   GET /data-quality/{table_name}/file-dates?file_dates=overall
 import { dimensionsFromMetrics, overallScore } from '../utils/quality.js'
 import { apiUrl, fetchWithTimeout } from './client.js'
-import { API_PATHS, API_QUERY_PARAMS, PROBE_WINDOW_DAYS, OVERALL_DATE } from '../config.js'
+import { API_PATHS, API_QUERY_PARAMS, FILE_DATES_LIMIT, PROBE_WINDOW_DAYS, OVERALL_DATE } from '../config.js'
 
 const tablePath = (tableName) => `${API_PATHS.dataQuality}/${encodeURIComponent(tableName)}`
 
@@ -39,17 +39,31 @@ export async function fetchTableIndex(tableName, fileDate) {
   if (fileDate) candidates.add(fileDate)
   for (let i = 0; i <= PROBE_WINDOW_DAYS; i += 1) candidates.add(isoDaysAgo(i))
 
-  const rows = await fetchWithTimeout(
-    apiUrl(
-      `${tablePath(tableName)}/${API_PATHS.dataQualityFileDates}?${API_QUERY_PARAMS.fileDates}=${[...candidates].map(encodeURIComponent).join(',')}`
+  // GEO_API caps /file-dates at FILE_DATES_LIMIT (100) dates per request, so the
+  // rolling window is probed in batches and the row arrays are merged. Without
+  // this the 120-day window (122 candidates with `overall`) returns HTTP 422.
+  const dates = [...candidates]
+  const batches = []
+  for (let i = 0; i < dates.length; i += FILE_DATES_LIMIT) {
+    batches.push(dates.slice(i, i + FILE_DATES_LIMIT))
+  }
+
+  const results = await Promise.all(
+    batches.map((batch) =>
+      fetchWithTimeout(
+        apiUrl(
+          `${tablePath(tableName)}/${API_PATHS.dataQualityFileDates}?${API_QUERY_PARAMS.fileDates}=${batch.map(encodeURIComponent).join(',')}`
+        )
+      )
     )
   )
-  if (!Array.isArray(rows)) return { dates: [], trend: [] }
+  const rows = results.flatMap((result) => (Array.isArray(result) ? result : []))
+  if (rows.length === 0) return { dates: [], trend: [] }
 
-  const dates = [...new Set(rows.map((r) => r && r.file_date).filter((d) => typeof d === 'string' && d.length > 0))]
-  dates.sort()
+  const snapshotDates = [...new Set(rows.map((r) => r && r.file_date).filter((d) => typeof d === 'string' && d.length > 0))]
+  snapshotDates.sort()
 
-  const trend = dates
+  const trend = snapshotDates
     .filter((date) => date !== OVERALL_DATE)
     .map((date) => {
       const dateRows = rows.filter((r) => r.file_date === date)
@@ -57,7 +71,7 @@ export async function fetchTableIndex(tableName, fileDate) {
       return { date, score: overallScore(dimensions), dimensions, rows: dateRows }
     })
 
-  const index = { dates, trend }
+  const index = { dates: snapshotDates, trend }
   indexCache.set(tableName, index)
   return index
 }

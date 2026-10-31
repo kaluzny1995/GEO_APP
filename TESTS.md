@@ -6,11 +6,11 @@ updated whenever the test suite or test counts change.
 ## Current status
 
 - **Test files:** 30
-- **Tests:** 207 passing
+- **Tests:** 212 passing
 - **Framework:** Vitest 2.1.9 + jsdom
 - **Libraries:** React Testing Library, `@testing-library/user-event`,
   `@testing-library/jest-dom`
-- **Last verified:** 2026-10-21 with `npm test`, `npm run lint` and
+- **Last verified:** 2026-10-31 with `npm test`, `npm run lint` and
   `npm run build`
 
 ## How to run
@@ -50,11 +50,11 @@ npx vitest run --reporter=verbose
 | App shell and routing | 3 | 16 |
 | Overview page | 1 | 9 |
 | Data quality views and charts | 6 | 65 |
-| Data quantity flow | 4 | 18 |
+| Data quantity flow | 4 | 20 |
 | Event categories and locations | 4 | 20 |
 | Shared UI components | 5 | 19 |
-| Utilities, API clients and visual config | 7 | 60 |
-| **Total** | **30** | **207** |
+| Utilities, API clients and visual config | 7 | 63 |
+| **Total** | **30** | **212** |
 
 ## App shell and routing (16)
 
@@ -207,7 +207,7 @@ Covers the legacy charts view header, selector and chart rendering.
 - calls onDatasetChange when selecting different dataset
 - renders QualityCharts
 
-## Data quantity flow (18)
+## Data quantity flow (20)
 
 ### `src/views/DataQuantityView.test.jsx` (6)
 
@@ -231,24 +231,26 @@ and missing-count rendering.
 - draws one curved union connector per ETL table
 - shows missing values when counts are unavailable
 
-### `src/utils/dataQuantity.test.js` (5)
+### `src/utils/dataQuantity.test.js` (4)
 
-Covers total extraction, locale formatting, differences, flow-pair derivation
-and missing values.
+Covers locale formatting, differences, flow-pair derivation and missing values.
 
 - formats quantities with the configured locale and handles missing values
-- extracts total_records from long-format metric rows
 - sums known quantities and ignores missing values
 - computes differences and labels only when both counts are known
 - builds one flow row per configured plain/ETL pair
 
-### `src/api/dataQuantity.test.js` (3)
+### `src/api/dataQuantity.test.js` (6)
 
-Covers parallel per-table requests and error propagation.
+Covers the date-discovery and actual-count endpoints, response mapping and error
+propagation.
 
-- fetches total_records for every requested table in parallel
-- returns null when a table has no total_records metric
+- fetches the snapshot dates from the data-quantity endpoint
+- fetches actual row counts for a snapshot and maps them by table
+- ignores untracked tables and non-numeric counts
+- returns an empty object when the API returns a non-list body
 - propagates request failures
+- tracks every table configured in the app
 
 ## Event categories and locations (20)
 
