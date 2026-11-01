@@ -93,6 +93,34 @@ If the API is unreachable or times out, the views show a red alert — "API
 server is down! Please check the API server." — with a Retry button; other
 errors (e.g. HTTP 500) show a plain error card.
 
+## Docker
+
+GEO_APP is built as the **`geo_react_app`** image by the Compose stack in
+[GEO_E2E](../GEO_E2E). It is a two-stage build: Node 20 compiles the Vite app, and
+nginx Alpine serves only the resulting `dist` — no source, tests or lint tooling in
+the final image.
+
+- The app is published on **http://localhost:3000**.
+- `VITE_API_BASE` is compiled at build time and defaults to `http://localhost:8000`.
+  It must be reachable from the browser, not from inside the Compose network.
+- The container depends on `geo_fastapi` being healthy before it starts.
+- nginx uses a history fallback so React Router paths (`/overview`, `/data-quality`, …)
+  work on a direct refresh.
+
+```bash
+cd ../GEO_E2E
+docker compose up -d --build geo_react_app
+```
+
+After changing `src/`, `public/`, `index.html` or the API URL, rebuild the image:
+
+```bash
+docker compose build geo_react_app
+docker compose up -d geo_react_app
+```
+
+`docker compose restart geo_react_app` does **not** pick up source changes.
+
 ## Install
 
 ```bash
