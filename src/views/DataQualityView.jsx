@@ -8,7 +8,7 @@ import GaugeCard from '../components/GaugeCard.jsx'
 import Badge from '../components/Badge.jsx'
 import { dimensionsFromMetrics, overallScore, toneFor, changeTone, scoreLabel } from '../utils/quality.js'
 import { baseOptions, chartColors, passRateBarOptions, radarOptions, statusColors } from '../variables/charts.js'
-import { fetchDataQuality, fetchTableIndex } from '../api/dataQuality.js'
+import { fetchDataQuality, fetchDataQualityTables, fetchTableIndex } from '../api/dataQuality.js'
 import {
   DEFAULT_TABLE,
   TABLE_NAMES,
@@ -42,8 +42,10 @@ ChartJS.register(
   Legend
 )
 
-// Dropdowns render their items alphabetically
-const sortedTableNames = [...TABLE_NAMES].sort()
+// Dropdowns render their items alphabetically; the list itself comes from the
+// API (with TABLE_NAMES as the offline fallback) so newly added tables/views
+// are not hidden by a stale frontend constant.
+const defaultTableNames = [...TABLE_NAMES].sort()
 
 // Default KPI cards (shown while data loads or when API unavailable)
 const defaultKpis = [
@@ -114,6 +116,7 @@ export default function DataQualityView() {
   // The defaults (avalanche_org / overall) load automatically on mount and
   // every dropdown change triggers a reload.
   const [tableName, setTableName] = useState(DEFAULT_TABLE)
+  const [tableNames, setTableNames] = useState(defaultTableNames)
   const [fileDate, setFileDate] = useState(OVERALL_DATE)
   const [requestId, setRequestId] = useState(0)
   const [metrics, setMetrics] = useState([])
@@ -128,6 +131,28 @@ export default function DataQualityView() {
     setError(err.message)
     setIsApiDown(Boolean(err.isConnectionError))
   }, [])
+
+  // Load the authoritative table/view list once; a failed list request silently
+  // keeps the static fallback so the metrics page still works.
+  useEffect(() => {
+    let cancelled = false
+    fetchDataQualityTables()
+      .then((tables) => {
+        if (!cancelled && tables.length > 0) setTableNames(tables)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  // If the API list no longer contains the selected table (e.g. it was dropped
+  // from the pipeline), fall back to the first available relation.
+  useEffect(() => {
+    if (tableNames.length > 0 && !tableNames.includes(tableName)) {
+      setTableName(tableNames[0])
+    }
+  }, [tableNames, tableName])
+
+  const sortedTableNames = useMemo(() => [...tableNames].sort(), [tableNames])
 
   const fetchData = useCallback(async (table, date) => {
     setIsLoading(true)
@@ -264,12 +289,12 @@ export default function DataQualityView() {
       {
         id: 'datasets',
         label: KPI_LABELS.datasets,
-        value: TABLE_NAMES.length,
+        value: tableNames.length,
         delta: 'tracked tables',
         up: true,
       },
     ]
-  }, [metrics, rules, previousSnapshot])
+  }, [metrics, rules, previousSnapshot, tableNames])
 
   const gaugeDelta = (key) => {
     if (!previousSnapshot) return null

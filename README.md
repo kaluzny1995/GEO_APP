@@ -15,10 +15,13 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
   discovered snapshot dates), and a sortable/filterable rule-level table. Table
   and snapshot selectors are in the toolbar, listed alphabetically, and default
   to `avalanche_org` / `overall`, which load automatically when the view opens.
-  The selection lives in component state (the URL always stays `/data-quality`);
-  changing either dropdown reloads the metrics. The snapshot list is discovered
-  from the API (last 120 days + `overall`, probed in batches of 100 dates — the
-  API's per-request cap) and cached per table.
+  The table list is read from `GET /data-quality/tables`, so every `geo` relation
+  (source tables, `*_etl` tables, the `*_vw` views and `union_etl`) appears
+  without a frontend release; `src/config.js` keeps the 19 measured tables as an
+  offline fallback. The selection lives in component state (the URL always stays
+  `/data-quality`); changing either dropdown reloads the metrics. The snapshot
+  list is discovered from the API (last 120 days + `overall`, probed in batches
+  of 100 dates — the API's per-request cap) and cached per table.
 - `/data-quantity` — row-quantity flow diagram for the nine plain source tables,
   their nine ETL tables and `union_etl`. The snapshot selector defaults to the
   latest dated snapshot (falling back to `overall`) and reloads all 19 actual
@@ -47,8 +50,8 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
 ## Configuration
 
 App-wide values (branding, routes, React Router v7 future flags, API base URL
-and endpoint paths, request timeout, probe window, default table, tracked table
-names, metric names and rule
+and endpoint paths, request timeout, probe window, default table, fallback table
+names, event-count limit, metric names and rule
 IDs, score/rule thresholds, labels, number/percent/score formatting, danger
 levels, default heatmap orientations, download formats and the country → region
 mapping) live in
@@ -63,7 +66,13 @@ environment variable.
 The app expects GEO_API running at `http://localhost:8000` (the base URL is set
 in `src/config.js`). Data-quality snapshots come from the `/data-quality/...`
 endpoints; see [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for their
-contract. The Data Quantity view uses the dedicated quantity endpoints:
+contract. The Data Quality view also reads:
+
+- `GET /data-quality/tables` — the authoritative `geo` table/view list for the
+  table dropdown (source + `_etl` + `_vw` relations, excluding `_raw` and
+  `data_quality`)
+
+The Data Quantity view uses the dedicated quantity endpoints:
 
 - `GET /data-quantity/dates` — every snapshot date present in `geo.union_etl`
   (plus `overall`)
@@ -82,6 +91,12 @@ Event counts come from two long-format endpoints:
   `{ source_name, subsource_name, event_category, event_subcategory, danger_rating, count }`
 - `GET /event-counts/location` — rows of
   `{ source_name, subsource_name, country_code, state_province, danger_rating, count }`
+
+Both endpoints return all groups by default (bounded at 10,000) and the app
+requests `?limit=10000` explicitly. The earlier default of 100 truncated the
+alphabetically-later sources (NIFC, OpenMeteo, USGS_*), and the location result
+has more than 1,000 groups, which is why sources were missing from the heatmaps
+and tables.
 
 The views sum these rows into an overall total plus the four danger levels.
 Events rated `none` or `no_rating` count toward overall totals only. The

@@ -12,6 +12,7 @@ Base URL: `http://localhost:8000`
 
 | Endpoint                                              | Description                              |
 |-------------------------------------------------------|------------------------------------------|
+| `GET /data-quality/tables`                            | Tables/views available in `geo` (dropdown source) |
 | `GET /data-quality/{table_name}`                      | Overall snapshot (`file_date=overall`)   |
 | `GET /data-quality/{table_name}/{file_date}`          | Metrics for one snapshot date            |
 | `GET /data-quality/{table_name}/file-dates?file_dates=overall,2024-10-15` | Metrics for the requested snapshot dates |
@@ -240,12 +241,21 @@ tables).
 
 ## Datasets
 
-19 tables are tracked in the UI (`TABLE_NAMES` in `src/config.js`):
+The **Data Quality** table dropdown is populated from `GET /data-quality/tables`,
+which introspects `information_schema.tables` for the `geo` schema: 9 source
+tables, their 9 `_etl` tables, the 17 `*_vw` views and `union_etl` (36 relations
+today). Internal `*_raw` staging tables and `data_quality` itself are excluded.
+Views are listed for completeness; data-quality metrics are only written for the
+19 measured source/ETL/union tables, so selecting a view shows the “no snapshots”
+message until a quality job is added for it.
+
+The **Data Quantity** view tracks the 19 measured tables (`TABLE_NAMES` in
+`src/config.js`, mirrored by GEO_API's `model/data_quantity.py`):
 
 - Data sources: `eonet_event`, `nifc_fire`, `ibtracs_cyclone`, `usgs_earthquake`,
   `usgs_volcano`, `openmeteo_flood`, `gdacs_event`, `usgs_nwis`, `avalanche_org`
 - ETL tables: the same names with an `_etl` suffix
 - Union table: `union_etl`
 
-The table dropdown lists all 19 names alphabetically and defaults to
-`avalanche_org`; the snapshot dropdown is also sorted alphabetically.
+The table dropdown defaults to `avalanche_org` and is sorted alphabetically; the
+snapshot dropdown is also sorted alphabetically.

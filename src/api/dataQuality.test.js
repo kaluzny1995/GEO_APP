@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchDataQuality, fetchTableIndex, clearIndexCache } from './dataQuality.js'
+import { fetchDataQuality, fetchDataQualityTables, fetchTableIndex, clearIndexCache } from './dataQuality.js'
 import { FILE_DATES_LIMIT, PROBE_WINDOW_DAYS } from '../config.js'
 
 describe('dataQuality API client', () => {
@@ -40,6 +40,21 @@ describe('dataQuality API client', () => {
     } catch (err) {
       expect(err.isConnectionError).toBeUndefined()
     }
+  })
+
+  it('fetches the authoritative table/view list and sorts it', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ['union_etl', 'avalanche_org', 'metrics_flood_vw', 'avalanche_org'],
+    })
+
+    await expect(fetchDataQualityTables()).resolves.toEqual([
+      'avalanche_org',
+      'metrics_flood_vw',
+      'union_etl',
+    ])
+    expect(globalThis.fetch.mock.calls[0][0]).toBe('http://localhost:8000/data-quality/tables')
   })
 
   describe('fetchTableIndex', () => {

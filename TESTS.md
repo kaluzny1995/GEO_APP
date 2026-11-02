@@ -6,11 +6,11 @@ updated whenever the test suite or test counts change.
 ## Current status
 
 - **Test files:** 30
-- **Tests:** 212 passing
+- **Tests:** 214 passing
 - **Framework:** Vitest 2.1.9 + jsdom
 - **Libraries:** React Testing Library, `@testing-library/user-event`,
   `@testing-library/jest-dom`
-- **Last verified:** 2026-10-31 with `npm test`, `npm run lint` and
+- **Last verified:** 2026-11-01 with `npm test`, `npm run lint` and
   `npm run build`
 
 ## How to run
@@ -49,12 +49,12 @@ npx vitest run --reporter=verbose
 |------|-----------:|------:|
 | App shell and routing | 3 | 16 |
 | Overview page | 1 | 9 |
-| Data quality views and charts | 6 | 65 |
+| Data quality views and charts | 6 | 66 |
 | Data quantity flow | 4 | 20 |
 | Event categories and locations | 4 | 20 |
 | Shared UI components | 5 | 19 |
-| Utilities, API clients and visual config | 7 | 63 |
-| **Total** | **30** | **212** |
+| Utilities, API clients and visual config | 7 | 64 |
+| **Total** | **30** | **214** |
 
 ## App shell and routing (16)
 
@@ -108,9 +108,9 @@ instructions, event-count explanation and dataset inventory.
 - describes the event count tabs
 - lists available datasets
 
-## Data quality views and charts (65)
+## Data quality views and charts (66)
 
-### `src/views/DataQualityView.test.jsx` (26)
+### `src/views/DataQualityView.test.jsx` (27)
 
 Covers initial loading, table/date selection, API discovery and caching,
 gauges, KPI cards, charts, rule table, score badge and error states.
@@ -119,7 +119,8 @@ gauges, KPI cards, charts, rule table, score badge and error states.
 - loads metrics when the table dropdown changes
 - renders the title, dataset name and date
 - renders back to overview link
-- renders dataset selector with all 19 tables
+- renders dataset selector with all 19 fallback tables
+- adds relations returned by the API table list (e.g. views)
 - renders date selector with available snapshots
 - displays quality gauges computed from long-format metrics
 - places the rule table before the gauges in the layout
@@ -345,7 +346,7 @@ Covers badge tones and children rendering.
 - renders with bad tone
 - renders children
 
-## Utilities, API clients and visual config (60)
+## Utilities, API clients and visual config (64)
 
 ### `src/utils/tableExport.test.js` (9)
 
@@ -401,21 +402,23 @@ thresholds and change direction.
 - toneFor > returns warn for 75-89
 - toneFor > returns bad for < 75
 
-### `src/api/dataQuality.test.js` (3)
+### `src/api/dataQuality.test.js` (7)
 
-Covers API-down classification for network failures/timeouts and pass-through
-of HTTP errors.
+Covers API-down classification for network failures/timeouts, pass-through of
+HTTP errors and the authoritative table/view list.
 
 - classifies network failures as API-down connection errors
 - classifies aborted requests (timeout) as API-down connection errors
 - passes through HTTP errors without the connection flag
+- fetches the authoritative table/view list and sorts it
 
 ### `src/api/eventCounts.test.js` (3)
 
-Covers the category and location endpoints and API-down classification.
+Covers the category and location endpoints and API-down classification. Both
+requests carry the explicit `?limit=10000` that keeps every source in the response.
 
-- requests the category endpoint
-- requests the location endpoint
+- requests the category endpoint with the full 10,000-group limit
+- requests the location endpoint with the full 10,000-group limit
 - classifies network failures as API-down connection errors
 
 ### `src/variables/charts.test.js` (8)

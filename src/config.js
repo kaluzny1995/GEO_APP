@@ -42,6 +42,7 @@ export const FILE_DATES_LIMIT = 100
 export const API_DOWN_MESSAGE = 'API server is down! Please check the API server.'
 export const API_PATHS = {
   dataQuality: '/data-quality',
+  dataQualityTables: 'tables',
   dataQualityFileDates: 'file-dates',
   dataQuantity: '/data-quantity',
   dataQuantityDates: 'dates',
@@ -50,10 +51,19 @@ export const API_PATHS = {
 }
 export const API_QUERY_PARAMS = { fileDates: 'file_dates' }
 
+// The event-count endpoints group union_etl by source/subsource/taxonomy/location.
+// The old API default (100) cut the alphabetically-later sources (NIFC, OpenMeteo,
+// USGS) out of the response, and the location result has >1,000 groups, so request
+// the full bounded set explicitly. Must match GEO_API's MAX_EVENT_COUNTS_LIMIT.
+export const EVENT_COUNTS_LIMIT = 10000
+
 // --- Data-quality domain ---
 export const OVERALL_DATE = 'overall'
 export const DEFAULT_TABLE = 'avalanche_org'
 
+// Static fallback for the data-quality dropdown. The live list comes from
+// GET /data-quality/tables (which also includes the *_vw relations); this
+// constant keeps the page usable when the API is down.
 // 19 tables: 9 plain data source tables, 9 ETL tables, 1 union table.
 export const ETL_SUFFIX = '_etl'
 export const UNION_TABLE = 'union_etl'

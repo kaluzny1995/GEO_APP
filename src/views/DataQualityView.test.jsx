@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within, fireEvent, waitFor } from '@testing-library/react'
 import DataQualityView from './DataQualityView.jsx'
 import { clearIndexCache } from '../api/dataQuality.js'
+import { TABLE_NAMES } from '../config.js'
 
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom')
@@ -33,6 +34,9 @@ const respondWith = (rows) => ({ ok: true, json: async () => rows })
 
 const defaultFetchImpl = async (url) => {
   const target = String(url)
+  if (target.endsWith('/data-quality/tables')) {
+    return respondWith([...TABLE_NAMES])
+  }
   if (target.includes('/file-dates')) {
     return respondWith([...metricRows('2024-10-15'), ...metricRows('overall')])
   }
@@ -103,6 +107,24 @@ describe('DataQualityView', () => {
     expect(within(tableSelect).getByRole('option', { name: 'nifc_fire' })).toBeInTheDocument()
     expect(within(tableSelect).getByRole('option', { name: 'avalanche_org_etl' })).toBeInTheDocument()
     expect(within(tableSelect).getByRole('option', { name: 'union_etl' })).toBeInTheDocument()
+  })
+
+  it('adds relations returned by the API table list (e.g. views)', async () => {
+    mockFetch.mockImplementation(async (url) => {
+      const target = String(url)
+      if (target.endsWith('/data-quality/tables')) {
+        return respondWith([...TABLE_NAMES, 'metrics_avalanche_vw'])
+      }
+      if (target.includes('/file-dates')) {
+        return respondWith([...metricRows('2024-10-15'), ...metricRows('overall')])
+      }
+      return respondWith(metricRows('2024-10-15'))
+    })
+    await renderLoaded()
+    expect(
+      within(selects()[0]).getByRole('option', { name: 'metrics_avalanche_vw' })
+    ).toBeInTheDocument()
+    expect(within(selects()[0]).getAllByRole('option')).toHaveLength(20)
   })
 
   it('renders date selector with available snapshots', async () => {

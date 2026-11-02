@@ -11,13 +11,13 @@ describe('eventCounts API client', () => {
   it('requests the category endpoint', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(okResponse([{ count: 1 }]))
     await expect(fetchEventCountsByCategory()).resolves.toEqual([{ count: 1 }])
-    expect(globalThis.fetch.mock.calls[0][0]).toBe('http://localhost:8000/event-counts/category')
+    expect(globalThis.fetch.mock.calls[0][0]).toBe('http://localhost:8000/event-counts/category?limit=10000')
   })
 
   it('requests the location endpoint', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(okResponse([{ count: 2 }]))
     await expect(fetchEventCountsByLocation()).resolves.toEqual([{ count: 2 }])
-    expect(globalThis.fetch.mock.calls[0][0]).toBe('http://localhost:8000/event-counts/location')
+    expect(globalThis.fetch.mock.calls[0][0]).toBe('http://localhost:8000/event-counts/location?limit=10000')
   })
 
   it('classifies network failures as API-down connection errors', async () => {

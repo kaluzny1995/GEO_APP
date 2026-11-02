@@ -1,5 +1,6 @@
 // GEO_API data-quality service
 // Endpoints (see DATA_QUALITY_METRICS.md):
+//   GET /data-quality/tables
 //   GET /data-quality/{table_name}/{file_date}
 //   GET /data-quality/{table_name}/file-dates?file_dates=overall
 import { dimensionsFromMetrics, overallScore } from '../utils/quality.js'
@@ -7,6 +8,16 @@ import { apiUrl, fetchWithTimeout } from './client.js'
 import { API_PATHS, API_QUERY_PARAMS, FILE_DATES_LIMIT, PROBE_WINDOW_DAYS, OVERALL_DATE } from '../config.js'
 
 const tablePath = (tableName) => `${API_PATHS.dataQuality}/${encodeURIComponent(tableName)}`
+
+// Authoritative table/view list for the dropdown. GEO_API introspects the geo
+// schema, so newly added source/ETL tables and the *_vw views appear without a
+// frontend release. Returns [] on an invalid payload; the view falls back to
+// TABLE_NAMES.
+export async function fetchDataQualityTables() {
+  const tables = await fetchWithTimeout(apiUrl(`${API_PATHS.dataQuality}/${API_PATHS.dataQualityTables}`))
+  if (!Array.isArray(tables)) return []
+  return [...new Set(tables.filter((table) => typeof table === 'string' && table.length > 0))].sort()
+}
 
 export async function fetchDataQuality(tableName, fileDate) {
   return fetchWithTimeout(
@@ -76,4 +87,4 @@ export async function fetchTableIndex(tableName, fileDate) {
   return index
 }
 
-export default { fetchDataQuality, fetchTableIndex, clearIndexCache }
+export default { fetchDataQuality, fetchDataQualityTables, fetchTableIndex, clearIndexCache }
