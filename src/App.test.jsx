@@ -41,6 +41,12 @@ vi.mock('./views/Landing.jsx', () => ({
   },
 }))
 
+vi.mock('./views/DataSourceFilesView.jsx', () => ({
+  default: function DataSourceFilesView() {
+    return <div className="data-source-files-view">Data Source Files View</div>
+  },
+}))
+
 vi.mock('./views/DataQualityView.jsx', () => ({
   default: function DataQualityView() {
     return <div className="data-quality-view">Data Quality View</div>
@@ -84,6 +90,13 @@ describe('App', () => {
     goTo('/data-quality')
     renderWithRouter(<App />)
     expect(screen.getByText('Data Quality View')).toBeInTheDocument()
+    expect(screen.queryByText('Landing page')).not.toBeInTheDocument()
+  })
+
+  it('navigates to data source files view when route matches', () => {
+    goTo('/data-source-files')
+    renderWithRouter(<App />)
+    expect(screen.getByText('Data Source Files View')).toBeInTheDocument()
     expect(screen.queryByText('Landing page')).not.toBeInTheDocument()
   })
 

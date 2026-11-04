@@ -5,12 +5,12 @@ updated whenever the test suite or test counts change.
 
 ## Current status
 
-- **Test files:** 30
-- **Tests:** 214 passing
+- **Test files:** 34
+- **Tests:** 236 passing
 - **Framework:** Vitest 2.1.9 + jsdom
 - **Libraries:** React Testing Library, `@testing-library/user-event`,
   `@testing-library/jest-dom`
-- **Last verified:** 2026-11-01 with `npm test`, `npm run lint` and
+- **Last verified:** 2026-11-03 with `npm test`, `npm run lint` and
   `npm run build`
 
 ## How to run
@@ -47,18 +47,19 @@ npx vitest run --reporter=verbose
 
 | Area | Test files | Tests |
 |------|-----------:|------:|
-| App shell and routing | 3 | 16 |
+| App shell and routing | 4 | 19 |
 | Overview page | 1 | 9 |
+| Data source files view | 3 | 19 |
 | Data quality views and charts | 6 | 66 |
 | Data quantity flow | 4 | 20 |
 | Event categories and locations | 4 | 20 |
 | Shared UI components | 5 | 19 |
 | Utilities, API clients and visual config | 7 | 64 |
-| **Total** | **30** | **214** |
+| **Total** | **34** | **236** |
 
-## App shell and routing (16)
+## App shell and routing (19)
 
-### `src/App.test.jsx` (5)
+### `src/App.test.jsx` (6)
 
 Covers the admin shell, route matching, default redirect and unknown-route
 redirect.
@@ -66,8 +67,16 @@ redirect.
 - renders sidebar, navbar, and content
 - navigates to overview by default
 - navigates to data quality view when route matches
+- navigates to data source files view when route matches
 - navigates to data quantity view when route matches
 - redirects unknown routes to overview
+
+### `src/routes.test.js` (2)
+
+Covers the sidebar route order and the configured data-source-files path.
+
+- places Data Source Files between Overview and Data Quality
+- uses the configured data-source-files path
 
 ### `src/components/Sidebar.test.jsx` (5)
 
@@ -107,6 +116,44 @@ instructions, event-count explanation and dataset inventory.
 - renders instructions for the Data Quantity dashboard
 - describes the event count tabs
 - lists available datasets
+
+## Data source files view (19)
+
+### `src/views/DataSourceFilesView.test.jsx` (5)
+
+Covers the source dropdown, CSV table, missing-date highlighting, sorting and
+error states.
+
+- lists sources and renders files with a red row for a missing date
+- reloads the list from the already-fetched files when the source changes
+- sorts by file name ascending and descending
+- shows the API-down alert and retries the request
+- shows an empty state when no source folders contain CSV files
+
+### `src/api/dataSourceFiles.test.js` (5)
+
+Covers normalization of the `GET /data-source-files` response and API-down
+classification.
+
+- normalizes the API payload and sorts source names
+- keeps missing numeric fields as null
+- derives sources from files when the API omits the source list
+- returns an empty payload for an invalid response body
+- classifies network failures as API-down connection errors
+
+### `src/utils/dataSourceFiles.test.js` (9)
+
+Covers date-range expansion, missing-date placeholders, sorting and formatting.
+
+- returns every calendar date inclusively
+- returns an empty list for invalid or reversed ranges
+- inserts a missing row for every date without a file
+- shows missing dates before a source first file when the range starts earlier
+- filters by source and keeps undated files visible
+- sorts file names ascending and descending, keeping missing rows last
+- sorts records and size numerically
+- keeps missing rows in chronological order when sorting by date
+- formats records, sizes and missing values
 
 ## Data quality views and charts (66)
 
@@ -469,3 +516,8 @@ changes:
   overflowing the page on narrow screens.
 - Data Quantity dates: switch the snapshot selector and confirm all 19 counts,
   badges and the union total reload; test the Retry path with the API stopped.
+- Data Source Files: open `/data-source-files`, confirm the source dropdown
+  lists every `GEO_Download/data` subfolder with CSV files, the table shows
+  date/file/created/records/size, a missing date is red with a `Missing` badge,
+  each sortable header toggles ascending/descending, and the Retry path works
+  with the API stopped.

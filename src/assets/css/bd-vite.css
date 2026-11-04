@@ -208,6 +208,17 @@ select, input {
 .change-bad { color: var(--bd-danger); }
 
 .table-wrap { overflow-x: auto; }
+.source-files-table .numeric { text-align: right; font-variant-numeric: tabular-nums; }
+.source-files-table tbody tr.row-missing td {
+  background: rgba(253, 93, 147, 0.12);
+  color: #ffdbe7;
+}
+.source-files-table tbody tr.row-missing:hover td {
+  background: rgba(253, 93, 147, 0.18);
+}
+.source-files-table tbody tr.row-missing td:first-child {
+  box-shadow: inset 3px 0 0 var(--bd-danger);
+}
 .level-dot {
   display: inline-block; width: 8px; height: 8px; border-radius: 50%;
   margin-right: 6px; vertical-align: middle;

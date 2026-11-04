@@ -10,6 +10,7 @@ export const APP_OVERVIEW_SUBTITLE = 'Geographic data quality & quantity overvie
 // --- App routes ---
 export const ROUTES = {
   overview: '/overview',
+  dataSourceFiles: '/data-source-files',
   dataQuality: '/data-quality',
   dataQuantity: '/data-quantity',
   eventCategories: '/event-categories',
@@ -46,6 +47,7 @@ export const API_PATHS = {
   dataQualityFileDates: 'file-dates',
   dataQuantity: '/data-quantity',
   dataQuantityDates: 'dates',
+  dataSourceFiles: '/data-source-files',
   eventCountsCategory: '/event-counts/category',
   eventCountsLocation: '/event-counts/location',
 }

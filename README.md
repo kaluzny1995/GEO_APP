@@ -8,8 +8,15 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
 
 - `/overview` — welcome page with what GEO_APP is for, step-by-step
   instructions for reading the dashboard, a glossary of data-quality rules and
-  their meanings, and a button group linking to all four dashboards (Data
-  Quality, Data Quantity, Event Categories, Event Locations)
+  their meanings, and a button group linking to the four analysis dashboards
+  (Data Quality, Data Quantity, Event Categories, Event Locations)
+- `/data-source-files` — CSV snapshot inventory for GEO_Download's `data`
+  folder, published by GEO_ETL's PySpark DATA_SOURCE_FILE job. A source dropdown lists
+  every subfolder that contains `.csv` files; the table shows one row per
+  calendar date with file name, filesystem modification time, record count
+  (header excluded) and size in kB. Dates with no CSV for the selected source
+  are highlighted red with a `Missing` badge. Columns can be sorted
+  ascending/descending by date, file name, created time, records and size.
 - `/data-quality` — data-quality dashboard for a table and snapshot: KPI cards,
   quality gauges, line/radar/bar/doughnut charts (the trend line covers all
   discovered snapshot dates), and a sortable/filterable rule-level table. Table
@@ -85,6 +92,15 @@ database. The view deliberately does **not** reuse `total_records` from
 backfills (for example, `union_etl` gained IBTRACS rows after its last metric
 run), which made the union card disagree with the table.
 
+The Data Source Files view uses:
+
+- `GET /data-source-files` — the CSV inventory published by GEO_ETL's PySpark
+  DATA_SOURCE_FILE job to `geo.data_source_files`, with file name, snapshot date parsed
+  from the name, filesystem modification time, record count (header excluded)
+  and size in kB. It also returns the configured pipeline start date and the
+  latest snapshot date, which the view uses to insert missing-date rows.
+  Root-level reference CSVs are excluded.
+
 Event counts come from two long-format endpoints:
 
 - `GET /event-counts/category` — rows of
@@ -119,7 +135,7 @@ the final image.
 - `VITE_API_BASE` is compiled at build time and defaults to `http://localhost:8000`.
   It must be reachable from the browser, not from inside the Compose network.
 - The container depends on `geo_fastapi` being healthy before it starts.
-- nginx uses a history fallback so React Router paths (`/overview`, `/data-quality`, …)
+- nginx uses a history fallback so React Router paths (`/overview`, `/data-source-files`, `/data-quality`, …)
   work on a direct refresh.
 
 ```bash
@@ -152,8 +168,8 @@ npm run lint     # ESLint
 ## Testing
 
 The full automated test inventory, including every test case and manual browser
-checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 30
-test files and 212 passing tests. `npm test` runs the suite once; use
+checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 34
+test files and 236 passing tests. `npm test` runs the suite once; use
 `npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
 
 ## Project structure
@@ -170,15 +186,17 @@ GEO_APP/
 │   ├── main.jsx             # BrowserRouter + Bootstrap + theme CSS
 │   ├── App.jsx              # Admin shell (Sidebar + TopNavbar + Routes)
 │   ├── config.js            # app config (API, tables, thresholds, labels, regions)
-│   ├── routes.js            # route table (overview, quality, quantity, event tabs)
+│   ├── routes.js            # route table (overview, source files, quality, quantity, event tabs)
 │   ├── api/client.js        # shared fetch + timeout / API-down handling
 │   ├── api/dataQuality.js   # GEO_API data-quality client (date discovery)
 │   ├── api/dataQuantity.js  # actual table-count fetcher for the flow diagram
+│   ├── api/dataSourceFiles.js # GEO_Download CSV metadata fetcher
 │   ├── api/eventCounts.js   # GEO_API event-count endpoints
-│   ├── views/               # Landing, DataQualityView, DataQuantityView, …
+│   ├── views/               # Landing, DataSourceFilesView, DataQualityView, …
 │   ├── components/          # Sidebar, GaugeCard, tables, DownloadMenu, diagram, …
 │   ├── utils/quality.js     # overallScore / toneFor / changeTone helpers
 │   ├── utils/dataQuantity.js # quantity extraction, flow pairs, difference labels
+│   ├── utils/dataSourceFiles.js # date-range expansion, missing rows, sorting
 │   ├── utils/eventCounts.js # event-count grouping, region lookup, matrices
 │   ├── utils/tableExport.js # CSV/JSON/XML/TXT serializers and file downloads
 │   ├── variables/charts.js  # chart colors and base options
@@ -190,7 +208,7 @@ GEO_APP/
 
 GEO_APP is the presentation layer of the GIS data pipeline. The five projects sit as siblings under `GeographicData/`:
 
-- **[GEO_API](../GEO_API)** — the FastAPI backend this dashboard talks to (`src/config.js` → `http://localhost:8000`); provides the `/data-quality/...` and `/event-counts/...` endpoints.
+- **[GEO_API](../GEO_API)** — the FastAPI backend this dashboard talks to (`src/config.js` → `http://localhost:8000`); provides the `/data-quality/...`, `/data-source-files` and `/event-counts/...` endpoints.
 - **[GEO_ETL](../GEO_ETL)** — PySpark ETL that writes the `geo.data_quality` metrics and `geo.union_etl` counts GEO_API serves.
 - **[GEO_Download](../GEO_Download)** — fetches the raw source data into dated CSVs.
 - **[GEO_E2E](../GEO_E2E)** — Airflow orchestrator that schedules the download and the ETL, and hosts the shared Supabase credentials setup.
