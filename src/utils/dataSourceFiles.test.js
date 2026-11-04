@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildSourceRows,
+  buildTimeline,
   dateRange,
   formatCreatedAt,
   formatRecords,
   formatSizeKb,
+  paginateRows,
   sortSourceRows,
 } from './dataSourceFiles.js'
 
@@ -139,6 +141,95 @@ describe('dataSourceFiles helpers', () => {
         '2026-09-02',
         '2026-09-01',
       ])
+    })
+  })
+
+  describe('buildTimeline', () => {
+    it('builds dated series, nulls for missing dates and a zero marker', () => {
+      const rows = [
+        file({ snapshotDate: '2026-09-01', records: 10, sizeKb: 1.2 }),
+        {
+          sourceName: 'EONET',
+          fileName: null,
+          snapshotDate: '2026-09-02',
+          createdAt: null,
+          records: null,
+          sizeKb: null,
+          missing: true,
+        },
+        file({ snapshotDate: '2026-09-03', records: 5, sizeKb: 0.8 }),
+      ]
+
+      const timeline = buildTimeline(rows)
+
+      expect(timeline.labels).toEqual(['2026-09-01', '2026-09-02', '2026-09-03'])
+      expect(timeline.records).toEqual([10, null, 5])
+      expect(timeline.sizes).toEqual([1.2, null, 0.8])
+      expect(timeline.missing).toEqual([null, 0, null])
+      expect(timeline.missingDates).toEqual(['2026-09-02'])
+      expect(timeline.undated).toBe(0)
+    })
+
+    it('sorts dated rows chronologically', () => {
+      const timeline = buildTimeline([
+        file({ snapshotDate: '2026-09-03', records: 5 }),
+        file({ snapshotDate: '2026-09-01', records: 10 }),
+      ])
+
+      expect(timeline.labels).toEqual(['2026-09-01', '2026-09-03'])
+      expect(timeline.records).toEqual([10, 5])
+    })
+
+    it('keeps undated files out of the series but counts them', () => {
+      const timeline = buildTimeline([
+        file({ snapshotDate: '2026-09-01' }),
+        file({ fileName: 'latest.csv', snapshotDate: null }),
+      ])
+
+      expect(timeline.labels).toEqual(['2026-09-01'])
+      expect(timeline.undated).toBe(1)
+    })
+
+    it('returns empty series for no rows', () => {
+      expect(buildTimeline([])).toMatchObject({
+        labels: [],
+        records: [],
+        sizes: [],
+        missing: [],
+        missingDates: [],
+        undated: 0,
+      })
+    })
+  })
+
+  describe('paginateRows', () => {
+    const rows = Array.from({ length: 12 }, (_, index) => file({ fileName: `${index + 1}.csv` }))
+
+    it('slices the requested page and reports the range', () => {
+      const first = paginateRows(rows, 1, 10)
+      expect(first.rows).toHaveLength(10)
+      expect(first).toMatchObject({ page: 1, pageCount: 2, total: 12, start: 0, end: 10 })
+
+      const second = paginateRows(rows, 2, 10)
+      expect(second.rows).toHaveLength(2)
+      expect(second).toMatchObject({ page: 2, pageCount: 2, total: 12, start: 10, end: 12 })
+    })
+
+    it('clamps a page outside the available range', () => {
+      expect(paginateRows(rows, 99, 10).page).toBe(2)
+      expect(paginateRows(rows, 0, 10).page).toBe(1)
+      expect(paginateRows(rows, -3, 10).page).toBe(1)
+    })
+
+    it('returns one empty page for an empty list', () => {
+      expect(paginateRows([], 1, 10)).toMatchObject({
+        rows: [],
+        page: 1,
+        pageCount: 1,
+        total: 0,
+        start: 0,
+        end: 0,
+      })
     })
   })
 

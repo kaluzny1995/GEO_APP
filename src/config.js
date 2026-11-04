@@ -53,6 +53,9 @@ export const API_PATHS = {
 }
 export const API_QUERY_PARAMS = { fileDates: 'file_dates' }
 
+// Rows per page in the Data Source Files table.
+export const DATA_SOURCE_FILES_PAGE_SIZE = 10
+
 // The event-count endpoints group union_etl by source/subsource/taxonomy/location.
 // The old API default (100) cut the alphabetically-later sources (NIFC, OpenMeteo,
 // USGS) out of the response, and the location result has >1,000 groups, so request

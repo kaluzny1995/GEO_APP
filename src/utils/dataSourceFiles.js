@@ -101,6 +101,47 @@ export function sortSourceRows(rows, sortKey, sortDir) {
   })
 }
 
+// Timeline series for the selected source. Missing dates become nulls in both
+// value series (the lines break there) and a zero marker in `missing`, which
+// the chart renders as a red cross and uses to shade the missing date band.
+export function buildTimeline(rows) {
+  const list = Array.isArray(rows) ? rows : []
+  const dated = list
+    .filter((row) => row?.snapshotDate)
+    .sort((a, b) => a.snapshotDate.localeCompare(b.snapshotDate))
+
+  return {
+    labels: dated.map((row) => row.snapshotDate),
+    records: dated.map((row) => (row.missing ? null : row.records)),
+    sizes: dated.map((row) => (row.missing ? null : row.sizeKb)),
+    missing: dated.map((row) => (row.missing ? 0 : null)),
+    missingDates: dated.filter((row) => row.missing).map((row) => row.snapshotDate),
+    undated: list.filter((row) => row && !row.snapshotDate).length,
+  }
+}
+
+// Clamp the requested page into the available range and return the visible
+// slice together with the metadata the pagination controls need.
+export function paginateRows(rows, page, pageSize) {
+  const list = Array.isArray(rows) ? rows : []
+  const total = list.length
+  const size = Math.max(1, Number(pageSize) || 1)
+  const pageCount = Math.max(1, Math.ceil(total / size))
+  const current = Math.min(Math.max(1, Number(page) || 1), pageCount)
+  const start = (current - 1) * size
+  const end = Math.min(start + size, total)
+
+  return {
+    rows: list.slice(start, end),
+    page: current,
+    pageCount,
+    pageSize: size,
+    total,
+    start,
+    end,
+  }
+}
+
 export const formatCreatedAt = (value) => {
   if (!value) return '—'
   const date = new Date(value)

@@ -8,15 +8,21 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
 
 - `/overview` — welcome page with what GEO_APP is for, step-by-step
   instructions for reading the dashboard, a glossary of data-quality rules and
-  their meanings, and a button group linking to the four analysis dashboards
-  (Data Quality, Data Quantity, Event Categories, Event Locations)
+  their meanings, and a button group linking to the five analysis dashboards
+  (Data Source Files, Data Quality, Data Quantity, Event Categories, Event
+  Locations). Data Source Files leads the group with its own amber button.
 - `/data-source-files` — CSV snapshot inventory for GEO_Download's `data`
   folder, published by GEO_ETL's PySpark DATA_SOURCE_FILE job. A source dropdown lists
   every subfolder that contains `.csv` files; the table shows one row per
   calendar date with file name, filesystem modification time, record count
   (header excluded) and size in kB. Dates with no CSV for the selected source
-  are highlighted red with a `Missing` badge. Columns can be sorted
-  ascending/descending by date, file name, created time, records and size.
+  are highlighted red with a `Missing` badge. A two-axis timeline plots record
+  counts (left linear axis) and file size in kB (right linear axis); missing
+  dates break both lines and are marked with red bands and crosses. The table
+  is paginated, and its download menu exports every row for the selected source
+  (including missing and undated files), not just the current page. Columns can
+  be sorted ascending/descending by date, file name, created time, records and
+  size.
 - `/data-quality` — data-quality dashboard for a table and snapshot: KPI cards,
   quality gauges, line/radar/bar/doughnut charts (the trend line covers all
   discovered snapshot dates), and a sortable/filterable rule-level table. Table
@@ -46,10 +52,12 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
   Waters/Oceans and Antarctica; see `COUNTRY_REGIONS` in `src/config.js`)
 - both heatmap matrices can be transposed (rows/columns swapped) with the
   icon toggle in the card header; hover it to see the “Transpose” tooltip
-- the data-quality table, both heatmap matrices and both category/location
-  tables have a download menu with CSV, JSON, XML and TXT options. Tables export
-  the rows currently visible after filtering/sorting; matrix exports follow the
-  current row/column orientation and include totals.
+- the data-quality table, both heatmap matrices, both category/location tables
+  and the Data Source Files table have a download menu with CSV, JSON, XML and
+  TXT options. Tables export the rows currently visible after filtering/sorting;
+  the Data Source Files download always includes every row for the selected
+  source, not just the current page. Matrix exports follow the current
+  row/column orientation and include totals.
 - Data comes from **GEO_API** at `http://localhost:8000` — see
   [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for the endpoint contract,
   long-format metrics, validation rules and dimension mapping.
@@ -58,7 +66,7 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
 
 App-wide values (branding, routes, React Router v7 future flags, API base URL
 and endpoint paths, request timeout, probe window, default table, fallback table
-names, event-count limit, metric names and rule
+names, event-count limit, Data Source Files page size, metric names and rule
 IDs, score/rule thresholds, labels, number/percent/score formatting, danger
 levels, default heatmap orientations, download formats and the country → region
 mapping) live in
@@ -99,7 +107,9 @@ The Data Source Files view uses:
   from the name, filesystem modification time, record count (header excluded)
   and size in kB. It also returns the configured pipeline start date and the
   latest snapshot date, which the view uses to insert missing-date rows.
-  Root-level reference CSVs are excluded.
+  Root-level reference CSVs are excluded. The view plots the dated rows on the
+  two-axis timeline, paginates the table and exports the full selected-source
+  row set through the shared download menu.
 
 Event counts come from two long-format endpoints:
 
@@ -168,8 +178,8 @@ npm run lint     # ESLint
 ## Testing
 
 The full automated test inventory, including every test case and manual browser
-checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 34
-test files and 236 passing tests. `npm test` runs the suite once; use
+checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 36
+test files and 256 passing tests. `npm test` runs the suite once; use
 `npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
 
 ## Project structure
@@ -193,7 +203,7 @@ GEO_APP/
 │   ├── api/dataSourceFiles.js # GEO_Download CSV metadata fetcher
 │   ├── api/eventCounts.js   # GEO_API event-count endpoints
 │   ├── views/               # Landing, DataSourceFilesView, DataQualityView, …
-│   ├── components/          # Sidebar, GaugeCard, tables, DownloadMenu, diagram, …
+│   ├── components/          # Sidebar, GaugeCard, tables, DownloadMenu, DataSourceFilesChart, Pagination, …
 │   ├── utils/quality.js     # overallScore / toneFor / changeTone helpers
 │   ├── utils/dataQuantity.js # quantity extraction, flow pairs, difference labels
 │   ├── utils/dataSourceFiles.js # date-range expansion, missing rows, sorting

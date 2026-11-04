@@ -3,10 +3,15 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter } from 'react-router-dom'
 import DataSourceFilesView from './DataSourceFilesView.jsx'
 import { fetchDataSourceFiles } from '../api/dataSourceFiles.js'
+import { downloadTable } from '../utils/tableExport.js'
 import { ROUTER_FUTURE_FLAGS } from '../config.js'
 
 vi.mock('../api/dataSourceFiles.js', () => ({
   fetchDataSourceFiles: vi.fn(),
+}))
+
+vi.mock('../utils/tableExport.js', () => ({
+  downloadTable: vi.fn(),
 }))
 
 const API_DATA = {
@@ -39,6 +44,25 @@ const API_DATA = {
       sizeKb: 2,
     },
   ],
+}
+
+const MANY_FILES = Array.from({ length: 12 }, (_, index) => {
+  const day = String(index + 1).padStart(2, '0')
+  return {
+    sourceName: 'EONET',
+    fileName: `eonet_events_2026-09-${day}.csv`,
+    snapshotDate: `2026-09-${day}`,
+    createdAt: '2026-10-04T00:14:50Z',
+    records: index + 1,
+    sizeKb: index + 0.5,
+  }
+})
+
+const MANY_FILES_DATA = {
+  sources: ['EONET'],
+  startDate: '2026-09-01',
+  latestDate: '2026-09-12',
+  files: MANY_FILES,
 }
 
 const renderView = () =>
@@ -102,6 +126,71 @@ describe('DataSourceFilesView', () => {
       'eonet_events_2026-09-01.csv',
       'No file',
     ])
+  })
+
+  it('plots records and file sizes with missing dates marked', async () => {
+    renderView()
+    await screen.findByText('eonet_events_2026-09-01.csv')
+
+    const chart = screen.getByTestId('line-chart')
+    const data = JSON.parse(chart.dataset.data)
+
+    expect(data.labels).toEqual(['2026-09-01', '2026-09-02', '2026-09-03'])
+    expect(data.datasets[0].data).toEqual([10, null, 5])
+    expect(data.datasets[1].data).toEqual([1, null, 1])
+    expect(data.datasets[2].data).toEqual([null, 0, null])
+  })
+
+  it('paginates the table and downloads every row, not just the current page', async () => {
+    fetchDataSourceFiles.mockResolvedValue(MANY_FILES_DATA)
+    renderView()
+    await screen.findByText('eonet_events_2026-09-12.csv')
+
+    expect(screen.getByText('Showing 1–10 of 12 CSV files')).toBeInTheDocument()
+    expect(bodyRows()).toHaveLength(10)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next page of CSV files' }))
+    expect(screen.getByText('Showing 11–12 of 12 CSV files')).toBeInTheDocument()
+    expect(bodyRows()).toHaveLength(2)
+
+    fireEvent.mouseOver(screen.getByRole('button', { name: /Download Data source files/ }))
+    fireEvent.click(screen.getByRole('menuitem', { name: '.csv' }))
+
+    expect(downloadTable).toHaveBeenCalledTimes(1)
+    const [table, format] = downloadTable.mock.calls[0]
+    expect(format).toBe('csv')
+    expect(table.columns).toEqual([
+      'Source',
+      'Date',
+      'File name',
+      'Created',
+      'Records',
+      'Size (kB)',
+      'Status',
+    ])
+    expect(table.rows).toHaveLength(12)
+    expect(table.rows[0]).toEqual([
+      'EONET',
+      '2026-09-12',
+      'eonet_events_2026-09-12.csv',
+      '2026-10-04T00:14:50Z',
+      12,
+      11.5,
+      'Present',
+    ])
+  })
+
+  it('returns to the first page when the sort changes', async () => {
+    fetchDataSourceFiles.mockResolvedValue(MANY_FILES_DATA)
+    renderView()
+    await screen.findByText('eonet_events_2026-09-12.csv')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next page of CSV files' }))
+    expect(screen.getByText('Showing 11–12 of 12 CSV files')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /File name/ }))
+
+    expect(screen.getByText('Showing 1–10 of 12 CSV files')).toBeInTheDocument()
   })
 
   it('shows the API-down alert and retries the request', async () => {

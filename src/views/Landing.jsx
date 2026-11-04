@@ -68,6 +68,9 @@ export default function Landing() {
           <p className="muted">{APP_OVERVIEW_SUBTITLE}</p>
         </div>
         <div className="btn-group" role="group" aria-label="Dashboards">
+          <NavLink to={ROUTES.dataSourceFiles} className="btn btn-sm btn-files">
+            Data Source Files
+          </NavLink>
           <NavLink to={ROUTES.dataQuality} className="btn btn-sm btn-quality">
             Data Quality
           </NavLink>
@@ -94,6 +97,35 @@ export default function Landing() {
           see at a glance which datasets are healthy, which need attention, and which
           rules are failing.
         </p>
+      </div>
+
+      <div className="card overview-card">
+        <h3>How to read the Data Source Files dashboard</h3>
+        <p className="muted">
+          The Data Source Files tab is the CSV inventory published by GEO_ETL&apos;s
+          DATA_SOURCE_FILE job for every GEO_Download source folder.
+        </p>
+        <ol className="muted" style={{ marginLeft: 20 }}>
+          <li>
+            Open it with the button above or the &quot;Data Source Files&quot; link in the
+            sidebar — the address is <code>{ROUTES.dataSourceFiles}</code>.
+          </li>
+          <li>
+            Pick a source in the dropdown. The table lists one row per calendar date
+            between the pipeline start and the latest snapshot; dates with no CSV are
+            highlighted red and marked <strong>Missing</strong>.
+          </li>
+          <li>
+            The timeline plots record counts on the left linear axis and file size in kB
+            on the right; red bands and crosses mark the missing dates. Undated files are
+            kept in the table but cannot be placed on the timeline.
+          </li>
+          <li>
+            Sort any column, page through the table, and use the download menu to export
+            every row for the selected source as CSV, JSON, XML or TXT — including missing
+            dates and undated files.
+          </li>
+        </ol>
       </div>
 
       <div className="card overview-card">
@@ -167,6 +199,54 @@ export default function Landing() {
       </div>
 
       <div className="card overview-card">
+        <h3>How to read the Event Categories dashboard</h3>
+        <p className="muted">
+          The Event Categories tab groups <code>{UNION_TABLE}</code> events by
+          category/subcategory, broken down by source_name/subsource_name.
+        </p>
+        <ol className="muted" style={{ marginLeft: 20 }}>
+          <li>
+            Open it with the button above or the &quot;Event Categories&quot; link in the
+            sidebar — the address is <code>{ROUTES.eventCategories}</code>.
+          </li>
+          <li>
+            Every row shows the overall count and its share of all events, plus the count
+            and share for each of the four danger levels ({DANGER_LEVELS.join(', ')}).
+            Events rated {UNRATED_DANGER_RATINGS.join(' or ')} are included in overall
+            counts only.
+          </li>
+          <li>
+            The category-by-source heatmap shows counts and shares; use the transpose icon
+            in the card header to swap rows and columns.
+          </li>
+        </ol>
+      </div>
+
+      <div className="card overview-card">
+        <h3>How to read the Event Locations dashboard</h3>
+        <p className="muted">
+          The Event Locations tab groups <code>{UNION_TABLE}</code> events by
+          country/state/province, broken down by source_name/subsource_name.
+        </p>
+        <ol className="muted" style={{ marginLeft: 20 }}>
+          <li>
+            Open it with the button above or the &quot;Event Locations&quot; link in the
+            sidebar — the address is <code>{ROUTES.eventLocations}</code>.
+          </li>
+          <li>
+            Every row shows the overall count and its share of all events, plus the count
+            and share for each of the four danger levels ({DANGER_LEVELS.join(', ')}).
+            Events rated {UNRATED_DANGER_RATINGS.join(' or ')} are included in overall
+            counts only.
+          </li>
+          <li>
+            The source-by-region heatmap ({regionList}) shows counts and shares; use the
+            transpose icon in the card header to swap rows and columns.
+          </li>
+        </ol>
+      </div>
+
+      <div className="card overview-card">
         <h3>Data quality rules</h3>
         <p className="muted">
           The dashboard evaluates these checks for every table and snapshot; each table
@@ -198,22 +278,6 @@ export default function Landing() {
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="card overview-card">
-        <h3>Event counts</h3>
-        <p className="muted">
-          The <strong>Event Categories</strong> tab groups <code>{UNION_TABLE}</code> events
-          by category/subcategory and the <strong>Event Locations</strong> tab groups them
-          by country/state/province — both broken down by source_name/subsource_name.
-          Every row shows the overall count and its share of all events, plus the count
-          and share for each of the four danger levels ({DANGER_LEVELS.join(', ')}).
-          Events rated {UNRATED_DANGER_RATINGS.join(' or ')} are included in overall
-          counts only. The Event Categories tab also shows a category-by-source heatmap,
-          and the Event Locations tab shows a source-by-region heatmap ({regionList}),
-          both with counts and shares. Both heatmaps can swap rows and columns with the
-          transpose icon in their card header.
-        </p>
       </div>
 
       <div className="card overview-card">

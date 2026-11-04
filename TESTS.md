@@ -5,12 +5,12 @@ updated whenever the test suite or test counts change.
 
 ## Current status
 
-- **Test files:** 34
-- **Tests:** 236 passing
+- **Test files:** 36
+- **Tests:** 256 passing
 - **Framework:** Vitest 2.1.9 + jsdom
 - **Libraries:** React Testing Library, `@testing-library/user-event`,
   `@testing-library/jest-dom`
-- **Last verified:** 2026-11-03 with `npm test`, `npm run lint` and
+- **Last verified:** 2026-11-04 with `npm test`, `npm run lint` and
   `npm run build`
 
 ## How to run
@@ -48,14 +48,14 @@ npx vitest run --reporter=verbose
 | Area | Test files | Tests |
 |------|-----------:|------:|
 | App shell and routing | 4 | 19 |
-| Overview page | 1 | 9 |
-| Data source files view | 3 | 19 |
+| Overview page | 1 | 12 |
+| Data source files view | 4 | 32 |
 | Data quality views and charts | 6 | 66 |
 | Data quantity flow | 4 | 20 |
 | Event categories and locations | 4 | 20 |
-| Shared UI components | 5 | 19 |
+| Shared UI components | 6 | 23 |
 | Utilities, API clients and visual config | 7 | 64 |
-| **Total** | **34** | **236** |
+| **Total** | **36** | **256** |
 
 ## App shell and routing (19)
 
@@ -100,33 +100,39 @@ future-flag warnings and no uncaught errors during the initial render.
 - should not log React Router future flag warnings
 - should not log any uncaught errors during initial render
 
-## Overview page (9)
+## Overview page (12)
 
-### `src/views/Landing.test.jsx` (9)
+### `src/views/Landing.test.jsx` (12)
 
 Covers the landing copy, dashboard links, quality-rule glossary, workflow
 instructions, event-count explanation and dataset inventory.
 
 - renders title and description
 - renders what is GEO_APP section
-- renders dashboard buttons for quality, quantity, categories and locations
+- renders dashboard buttons for source files, quality, quantity, categories and locations
 - lists the data quality rules and what they mean
 - explains that defaults load automatically and dropdowns reload metrics
 - renders instructions for the Data Quality dashboard
 - renders instructions for the Data Quantity dashboard
-- describes the event count tabs
+- renders instructions for the Data Source Files dashboard
+- renders instructions for the Event Categories dashboard
+- renders instructions for the Event Locations dashboard
+- orders the view cards like the sidebar navigation
 - lists available datasets
 
-## Data source files view (19)
+## Data source files view (32)
 
-### `src/views/DataSourceFilesView.test.jsx` (5)
+### `src/views/DataSourceFilesView.test.jsx` (8)
 
-Covers the source dropdown, CSV table, missing-date highlighting, sorting and
-error states.
+Covers the source dropdown, timeline, CSV table, missing-date highlighting,
+sorting, pagination, full-table download and error states.
 
 - lists sources and renders files with a red row for a missing date
 - reloads the list from the already-fetched files when the source changes
 - sorts by file name ascending and descending
+- plots records and file sizes with missing dates marked
+- paginates the table and downloads every row, not just the current page
+- returns to the first page when the sort changes
 - shows the API-down alert and retries the request
 - shows an empty state when no source folders contain CSV files
 
@@ -141,19 +147,35 @@ classification.
 - returns an empty payload for an invalid response body
 - classifies network failures as API-down connection errors
 
-### `src/utils/dataSourceFiles.test.js` (9)
+### `src/utils/dataSourceFiles.test.js` (16)
 
-Covers date-range expansion, missing-date placeholders, sorting and formatting.
+Covers date-range expansion, missing-date placeholders, timeline series,
+pagination, sorting and formatting.
 
 - returns every calendar date inclusively
 - returns an empty list for invalid or reversed ranges
 - inserts a missing row for every date without a file
 - shows missing dates before a source first file when the range starts earlier
 - filters by source and keeps undated files visible
+- builds dated series, nulls for missing dates and a zero marker
+- sorts dated rows chronologically
+- keeps undated files out of the series but counts them
+- returns empty series for no rows
+- slices the requested page and reports the range
+- clamps a page outside the available range
+- returns one empty page for an empty list
 - sorts file names ascending and descending, keeping missing rows last
 - sorts records and size numerically
 - keeps missing rows in chronological order when sorting by date
 - formats records, sizes and missing values
+
+### `src/components/DataSourceFilesChart.test.jsx` (3)
+
+Covers the two-axis timeline data, missing-date markers and scale configuration.
+
+- renders a line chart
+- plots records, size and the missing-date marker
+- uses two linear y-axes
 
 ## Data quality views and charts (66)
 
@@ -345,7 +367,7 @@ empty state.
 - groups unknown country codes under Other
 - shows an empty message when there are no counts
 
-## Shared UI components (19)
+## Shared UI components (23)
 
 ### `src/components/Tooltip.test.jsx` (2)
 
@@ -363,6 +385,15 @@ fallback.
 - accepts a custom size and class name
 - renders download and file-format icons
 - renders nothing for an unknown icon name
+
+### `src/components/Pagination.test.jsx` (4)
+
+Covers the shared pagination controls, range label and disabled boundaries.
+
+- shows the current range and page count
+- navigates to first, previous, next and last page
+- disables backward controls on the first page and forward controls on the last
+- handles an empty table as a single empty page
 
 ### `src/components/DownloadMenu.test.jsx` (4)
 
@@ -517,7 +548,19 @@ changes:
 - Data Quantity dates: switch the snapshot selector and confirm all 19 counts,
   badges and the union total reload; test the Retry path with the API stopped.
 - Data Source Files: open `/data-source-files`, confirm the source dropdown
-  lists every `GEO_Download/data` subfolder with CSV files, the table shows
-  date/file/created/records/size, a missing date is red with a `Missing` badge,
-  each sortable header toggles ascending/descending, and the Retry path works
-  with the API stopped.
+  lists every `GEO_Download/data` subfolder with CSV files, the timeline shows
+  records on the left linear axis and size in kB on the right, missing dates
+  break both lines and carry red bands/crosses, the table shows
+  date/file/created/records/size with a red `Missing` row, each sortable header
+  toggles ascending/descending, the pagination controls move between pages and
+  reset to page 1 after sorting, and the download menu exports every row for
+  the selected source (including missing and undated files) in all four
+  formats. Confirm the Retry path works with the API stopped.
+- Overview: confirm the amber **Data Source Files** button is first in the
+  dashboard button group and links to `/data-source-files`, and that the cards
+  follow the sidebar order — What is GEO_APP for?, Data Source Files, Data
+  Quality, Data Quantity, Event Categories, Event Locations, Data quality
+  rules, Available dataset tables. Each of the five view cards links to its
+  route and describes its own layout; Event Categories and Event Locations have
+  separate cards, and the Data Source Files card covers the timeline,
+  missing-date highlighting, pagination and full-table download.

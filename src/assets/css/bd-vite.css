@@ -145,6 +145,10 @@ select, input {
   .grid.two, .grid.three { grid-template-columns: 1fr; }
   .sidebar { display: none; }
 }
+@media (max-width: 640px) {
+  .source-files-chart { height: 240px; }
+  .pagination { align-items: flex-start; }
+}
 
 .card {
   background: var(--bd-card);
@@ -209,6 +213,14 @@ select, input {
 
 .table-wrap { overflow-x: auto; }
 .source-files-table .numeric { text-align: right; font-variant-numeric: tabular-nums; }
+.source-files-chart { height: 300px; }
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-top: 12px; font-size: 13px;
+}
+.pagination-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pagination-page { color: var(--bd-muted); padding: 0 6px; white-space: nowrap; }
+.pagination .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .source-files-table tbody tr.row-missing td {
   background: rgba(253, 93, 147, 0.12);
   color: #ffdbe7;
@@ -501,10 +513,12 @@ tbody tr:hover td { background: rgba(255,255,255,0.03); }
   overflow: visible;
 }
 .quantity-arrowhead { fill: rgba(225, 78, 202, 0.95); }
+.btn.btn-files { background: linear-gradient(135deg, #fbbf24, #f97316); color: #2a1a05; }
 .btn.btn-quality { background: linear-gradient(135deg, var(--bd-primary), #7b2ff7); }
 .btn.btn-quantity { background: linear-gradient(135deg, #00f2c3, #1d8cf8); color: #122330; }
 .btn.btn-categories { background: linear-gradient(135deg, var(--bd-info), #3358f4); }
 .btn.btn-locations { background: linear-gradient(135deg, #00b894, #007f6d); }
+.btn.btn-files,
 .btn.btn-quantity,
 .btn.btn-categories,
 .btn.btn-locations {
@@ -512,11 +526,13 @@ tbody tr:hover td { background: rgba(255,255,255,0.03); }
   background-position: 0% 50%;
   transition: background-position 0.35s ease, filter 0.2s ease;
 }
+.btn.btn-files:hover,
 .btn.btn-quantity:hover,
 .btn.btn-categories:hover,
 .btn.btn-locations:hover { background-position: 100% 50%; }
 
 @media (prefers-reduced-motion: reduce) {
+  .btn.btn-files,
   .btn.btn-quantity,
   .btn.btn-categories,
   .btn.btn-locations { transition: none; }

@@ -24,18 +24,33 @@ describe('Landing', () => {
     expect(screen.getByText(/GEO_APP is a React front-end for exploring data quality and event quantity/i)).toBeInTheDocument()
   })
 
-  it('renders dashboard buttons for quality, quantity, categories and locations', () => {
+  it('renders dashboard buttons for source files, quality, quantity, categories and locations', () => {
     renderLanding()
     const group = screen.getByRole('group', { name: /dashboards/i })
+    const sourceFiles = within(group).getByRole('link', { name: 'Data Source Files' })
     const quality = within(group).getByRole('link', { name: 'Data Quality' })
     const quantity = within(group).getByRole('link', { name: 'Data Quantity' })
     const categories = within(group).getByRole('link', { name: 'Event Categories' })
     const locations = within(group).getByRole('link', { name: 'Event Locations' })
 
+    expect(sourceFiles).toHaveAttribute('href', '/data-source-files')
     expect(quality).toHaveAttribute('href', '/data-quality')
     expect(quantity).toHaveAttribute('href', '/data-quantity')
     expect(categories).toHaveAttribute('href', '/event-categories')
     expect(locations).toHaveAttribute('href', '/event-locations')
+    expect(group.firstElementChild).toBe(sourceFiles)
+  })
+
+  it('renders instructions for the Data Source Files dashboard', () => {
+    renderLanding()
+    const card = screen.getByRole('heading', { name: 'How to read the Data Source Files dashboard' }).closest('.card')
+
+    expect(card).toHaveTextContent('/data-source-files')
+    expect(card).toHaveTextContent(/one row per calendar date/i)
+    expect(card).toHaveTextContent(/record counts on the left linear axis/i)
+    expect(card).toHaveTextContent(/red bands and crosses mark the missing dates/i)
+    expect(card).toHaveTextContent(/page through the table/i)
+    expect(card).toHaveTextContent(/every row for the selected source/i)
   })
 
   it('lists the data quality rules and what they mean', () => {
@@ -77,14 +92,47 @@ describe('Landing', () => {
     expect(screen.getByText(/every ETL table feeds the union card/i)).toBeInTheDocument()
   })
 
-  it('describes the event count tabs', () => {
+  it('renders instructions for the Event Categories dashboard', () => {
     renderLanding()
-    const card = screen.getByRole('heading', { name: 'Event counts' }).closest('.card')
-    expect(card).toHaveTextContent('Event Categories tab groups union_etl events')
-    expect(card).toHaveTextContent('four danger levels (low, medium, high, extreme)')
-    expect(card).toHaveTextContent('source-by-region heatmap')
-    expect(card).toHaveTextContent('Waters/Oceans and Antarctica')
+    const card = screen
+      .getByRole('heading', { name: 'How to read the Event Categories dashboard' })
+      .closest('.card')
+
+    expect(card).toHaveTextContent('/event-categories')
+    expect(card).toHaveTextContent(/groups union_etl events by category\/subcategory/i)
+    expect(card).toHaveTextContent(/four danger levels \(low, medium, high, extreme\)/i)
+    expect(card).toHaveTextContent(/category-by-source heatmap/i)
     expect(card).toHaveTextContent(/transpose icon/i)
+  })
+
+  it('renders instructions for the Event Locations dashboard', () => {
+    renderLanding()
+    const card = screen
+      .getByRole('heading', { name: 'How to read the Event Locations dashboard' })
+      .closest('.card')
+
+    expect(card).toHaveTextContent('/event-locations')
+    expect(card).toHaveTextContent(/groups union_etl events by country\/state\/province/i)
+    expect(card).toHaveTextContent(/four danger levels \(low, medium, high, extreme\)/i)
+    expect(card).toHaveTextContent(/source-by-region heatmap/i)
+    expect(card).toHaveTextContent(/Waters\/Oceans and Antarctica/i)
+    expect(card).toHaveTextContent(/transpose icon/i)
+  })
+
+  it('orders the view cards like the sidebar navigation', () => {
+    renderLanding()
+    const headings = screen.getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
+
+    expect(headings).toEqual([
+      'What is GEO_APP for?',
+      'How to read the Data Source Files dashboard',
+      'How to read the Data Quality dashboard',
+      'How to read the Data Quantity dashboard',
+      'How to read the Event Categories dashboard',
+      'How to read the Event Locations dashboard',
+      'Data quality rules',
+      'Available dataset tables',
+    ])
   })
 
   it('lists available datasets', () => {
