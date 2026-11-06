@@ -134,7 +134,7 @@ Covers the repository/source inventory, Airflow UI tile, database composition,
 flow formats and edge lookup.
 
 - lists the six repositories in pipeline order
-- gives every repository a folder image and at least one technology
+- gives every repository a folder image and the expected technology logos
 - lists nine data sources: seven JSON APIs and two CSV feeds
 - uses the Airflow image for Airflow UI and the Streamlit image for GEO_Visual
 - combines the database symbol with Supabase and PostgreSQL
@@ -148,6 +148,8 @@ flow formats and edge lookup.
 
 Covers repository/source nodes, readable technology labels, the combined
 database node, edge badges, connector labels and GEO_E2E orchestration links.
+The technology checks include the requests, Pydantic, JDBC, SQLModel, asyncpg,
+Vite, Chart.js, Bootstrap, pandas, Plotly and psycopg logos.
 
 - renders every repository node with its name and folder image
 - renders every data source with its name and JSON or CSV format badge

@@ -51,6 +51,25 @@ describe('SystemFlowDiagram', () => {
     const streamlit = screen.getByTestId('system-flow-tech-visual-streamlit')
     expect(within(streamlit).getByText('Streamlit')).toBeInTheDocument()
     expect(streamlit.querySelector('img').getAttribute('src')).toContain('streamlit_no_text_logo')
+
+    const expectedChips = [
+      ['e2e', 'pydantic', 'Pydantic'],
+      ['download', 'requests', 'requests'],
+      ['download', 'pydantic', 'Pydantic'],
+      ['etl', 'jdbc', 'JDBC'],
+      ['api', 'sqlmodel', 'SQLModel'],
+      ['api', 'asyncpg', 'asyncpg'],
+      ['app', 'vite', 'Vite'],
+      ['app', 'chartjs', 'Chart.js'],
+      ['app', 'bootstrap', 'Bootstrap'],
+      ['visual', 'pandas', 'pandas'],
+      ['visual', 'plotly', 'Plotly'],
+      ['visual', 'psycopg', 'psycopg'],
+    ]
+    expectedChips.forEach(([repoId, techId, label]) => {
+      const chip = screen.getByTestId(`system-flow-tech-${repoId}-${techId}`)
+      expect(within(chip).getByText(label)).toBeInTheDocument()
+    })
   })
 
   it('combines Supabase and PostgreSQL in the database node', () => {

@@ -29,7 +29,7 @@ describe('systemFlow data', () => {
     ])
   })
 
-  it('gives every repository a folder image and at least one technology', () => {
+  it('gives every repository a folder image and the expected technology logos', () => {
     Object.values(SYSTEM_FLOW_REPOS).forEach((repo) => {
       expect(repo.logo).toBeTruthy()
       expect(repo.logoName).toContain('folder_no_text_symbol')
@@ -38,6 +38,19 @@ describe('systemFlow data', () => {
         expect(tech.logo).toBeTruthy()
         expect(tech.name).toBeTruthy()
       })
+    })
+
+    const expectedTechs = {
+      e2e: ['pydantic'],
+      download: ['requests', 'pydantic'],
+      etl: ['pydantic', 'jdbc'],
+      api: ['pydantic', 'sqlmodel', 'asyncpg'],
+      app: ['vite', 'chartjs', 'bootstrap'],
+      visual: ['pandas', 'plotly', 'psycopg', 'pydantic'],
+    }
+    Object.entries(expectedTechs).forEach(([repoId, techIds]) => {
+      const actualIds = SYSTEM_FLOW_REPOS[repoId].technologies.map((tech) => tech.id)
+      techIds.forEach((techId) => expect(actualIds).toContain(techId))
     })
   })
 

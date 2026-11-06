@@ -82,12 +82,12 @@ PostgreSQL over **SQL/JDBC**. GEO_API reads with **SQL/asyncpg**, GEO_APP talks
 
 | Repository | Technologies |
 |------------|--------------|
-| GEO_E2E | Apache Airflow 3.3.2 (LocalExecutor), Airflow UI (`:8090`), Docker Compose, Docker, PySpark 3.5.5 / Spark standalone, Anaconda, Supabase Postgres (`geo_airflow`), Python 3.11 |
+| GEO_E2E | Apache Airflow 3.3.2 (LocalExecutor), Airflow UI (`:8090`), Docker Compose, Docker, PySpark 3.5.5 / Spark standalone, Anaconda, Supabase Postgres (`geo_airflow`), Pydantic 2, Python 3.11 |
 | GEO_Download | Python 3.11, requests, Pydantic 2, CSV, pytest, Ruff, mypy, tox |
 | GEO_ETL | PySpark 3.5.5, Spark standalone, Supabase Postgres (JDBC), Pydantic 2, pytest, Ruff, mypy, tox |
 | GEO_API | FastAPI, Uvicorn, Pydantic 2, SQLModel + SQLAlchemy 2 async, Supabase Postgres (asyncpg), pytest, Ruff, mypy, tox |
 | GEO_APP | React 18, Vite, React Router 6, Bootstrap 5, Chart.js 4, Vitest, React Testing Library |
-| GEO_Visual | Streamlit, pandas, Plotly, SQLAlchemy 2, Supabase Postgres (psycopg 3), pytest, Ruff, mypy, tox |
+| GEO_Visual | Streamlit, pandas, Plotly, SQLAlchemy 2, Supabase Postgres (psycopg 3), Pydantic 2, pytest, Ruff, mypy, tox |
 
 The diagram uses the logos available under `src/assets/logos/`:
 
@@ -97,7 +97,9 @@ The diagram uses the logos available under `src/assets/logos/`:
 - `technology/database_no_text_symbol.png` — the database node, combined with the
   Supabase and PostgreSQL logos and labelled **Supabase PostgreSQL**.
 - `technology/streamlit_no_text_logo.png` — GEO_Visual's Streamlit tile.
-- `technology/` — the remaining stack logos.
+- `technology/` also contains the requests, Pydantic, JDBC, SQLModel, asyncpg,
+  Vite, Chart.js, Bootstrap, pandas, Plotly and psycopg logos used by the
+  repository cards.
 
 ### Label rule
 

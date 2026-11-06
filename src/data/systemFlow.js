@@ -15,23 +15,34 @@ import usgsVolcanoLogo from '../assets/logos/data-source/usgs_volcano_no_text_lo
 
 import airflowLogo from '../assets/logos/technology/airflow_no_text_logo.webp'
 import anacondaLogo from '../assets/logos/technology/anaconda_logo.png'
+import asyncpgLogo from '../assets/logos/technology/asyncpg_logo.png'
+import bootstrapLogo from '../assets/logos/technology/bootstrap_no_text_logo.webp'
+import chartjsLogo from '../assets/logos/technology/chartjs_no_text_logo.webp'
 import databaseLogo from '../assets/logos/technology/database_no_text_symbol.png'
 import dockerComposeLogo from '../assets/logos/technology/docker_compose_no_text_logo.png'
 import dockerLogo from '../assets/logos/technology/docker_logo.png'
 import fastapiLogo from '../assets/logos/technology/fastapi_logo.webp'
 import folderLogo from '../assets/logos/technology/folder_no_text_symbol.png'
+import jdbcLogo from '../assets/logos/technology/jdbc_logo.svg'
+import pandasLogo from '../assets/logos/technology/pandas_no_text_logo.svg'
+import plotlyLogo from '../assets/logos/technology/plotly_no_text_logo.png'
 import postgresqlLogo from '../assets/logos/technology/postgresql_no_text_logo.webp'
+import psycopgLogo from '../assets/logos/technology/psycopg_no_text_logo.png'
+import pydanticLogo from '../assets/logos/technology/pydantic_no_text_logo.png'
 import pytestLogo from '../assets/logos/technology/pytest_logo.webp'
 import pythonMypyLogo from '../assets/logos/technology/python_mypy_logo.png'
 import pythonLogo from '../assets/logos/technology/python_no_text_logo.webp'
 import reactLogo from '../assets/logos/technology/react_js_no_text_logo.webp'
 import reactTestingLogo from '../assets/logos/technology/react_testing_no_text_logo.webp'
+import requestsLogo from '../assets/logos/technology/requests_logo.png'
 import ruffLogo from '../assets/logos/technology/ruff_no_text_logo.png'
 import sparkLogo from '../assets/logos/technology/spark_logo.webp'
+import sqlmodelLogo from '../assets/logos/technology/sqlmodel_logo.svg'
 import streamlitLogo from '../assets/logos/technology/streamlit_no_text_logo.png'
 import supabaseLogo from '../assets/logos/technology/supabase_no_text_logo.png'
 import toxLogo from '../assets/logos/technology/tox_logo.svg'
 import uvicornLogo from '../assets/logos/technology/uvicorn_logo.png'
+import viteLogo from '../assets/logos/technology/vite_no_text_logo.webp'
 import vitestLogo from '../assets/logos/technology/vitest_no_text_logo.svg'
 
 // Every source and technology tile shows its name underneath the image. The
@@ -50,6 +61,25 @@ export const TECHNOLOGIES = {
     logo: anacondaLogo,
     logoName: 'anaconda_logo.png',
     wide: true,
+  },
+  asyncpg: {
+    id: 'asyncpg',
+    name: 'asyncpg',
+    logo: asyncpgLogo,
+    logoName: 'asyncpg_logo.png',
+    wide: true,
+  },
+  bootstrap: {
+    id: 'bootstrap',
+    name: 'Bootstrap',
+    logo: bootstrapLogo,
+    logoName: 'bootstrap_no_text_logo.webp',
+  },
+  chartjs: {
+    id: 'chartjs',
+    name: 'Chart.js',
+    logo: chartjsLogo,
+    logoName: 'chartjs_no_text_logo.webp',
   },
   docker: {
     id: 'docker',
@@ -71,12 +101,48 @@ export const TECHNOLOGIES = {
     logoName: 'fastapi_logo.webp',
     wide: true,
   },
+  jdbc: {
+    id: 'jdbc',
+    name: 'JDBC',
+    logo: jdbcLogo,
+    logoName: 'jdbc_logo.svg',
+  },
   mypy: {
     id: 'mypy',
     name: 'mypy',
     logo: pythonMypyLogo,
     logoName: 'python_mypy_logo.png',
     wide: true,
+  },
+  pandas: {
+    id: 'pandas',
+    name: 'pandas',
+    logo: pandasLogo,
+    logoName: 'pandas_no_text_logo.svg',
+  },
+  plotly: {
+    id: 'plotly',
+    name: 'Plotly',
+    logo: plotlyLogo,
+    logoName: 'plotly_no_text_logo.png',
+  },
+  psycopg: {
+    id: 'psycopg',
+    name: 'psycopg',
+    logo: psycopgLogo,
+    logoName: 'psycopg_no_text_logo.png',
+  },
+  pydantic: {
+    id: 'pydantic',
+    name: 'Pydantic',
+    logo: pydanticLogo,
+    logoName: 'pydantic_no_text_logo.png',
+  },
+  requests: {
+    id: 'requests',
+    name: 'requests',
+    logo: requestsLogo,
+    logoName: 'requests_logo.png',
   },
   postgresql: {
     id: 'postgresql',
@@ -122,6 +188,13 @@ export const TECHNOLOGIES = {
     logoName: 'spark_logo.webp',
     wide: true,
   },
+  sqlmodel: {
+    id: 'sqlmodel',
+    name: 'SQLModel',
+    logo: sqlmodelLogo,
+    logoName: 'sqlmodel_logo.svg',
+    wide: true,
+  },
   streamlit: {
     id: 'streamlit',
     name: 'Streamlit',
@@ -148,6 +221,12 @@ export const TECHNOLOGIES = {
     logoName: 'uvicorn_logo.png',
     wide: true,
   },
+  vite: {
+    id: 'vite',
+    name: 'Vite',
+    logo: viteLogo,
+    logoName: 'vite_no_text_logo.webp',
+  },
   vitest: {
     id: 'vitest',
     name: 'Vitest',
@@ -173,6 +252,7 @@ export const SYSTEM_FLOW_REPOS = {
       TECHNOLOGIES.supabase,
       TECHNOLOGIES.postgresql,
       TECHNOLOGIES.python,
+      TECHNOLOGIES.pydantic,
     ],
     techNote: 'DAG: geo_pipeline',
   },
@@ -185,12 +265,14 @@ export const SYSTEM_FLOW_REPOS = {
     logoName: 'folder_no_text_symbol.png',
     technologies: [
       TECHNOLOGIES.python,
+      TECHNOLOGIES.requests,
+      TECHNOLOGIES.pydantic,
       TECHNOLOGIES.pytest,
       TECHNOLOGIES.ruff,
       TECHNOLOGIES.mypy,
       TECHNOLOGIES.tox,
     ],
-    techNote: 'requests · Pydantic',
+    techNote: 'CSV · reference lookups',
   },
   etl: {
     id: 'etl',
@@ -203,12 +285,14 @@ export const SYSTEM_FLOW_REPOS = {
       TECHNOLOGIES.spark,
       TECHNOLOGIES.python,
       TECHNOLOGIES.postgresql,
+      TECHNOLOGIES.pydantic,
+      TECHNOLOGIES.jdbc,
       TECHNOLOGIES.pytest,
       TECHNOLOGIES.ruff,
       TECHNOLOGIES.mypy,
       TECHNOLOGIES.tox,
     ],
-    techNote: 'Pydantic · JDBC',
+    techNote: 'PySpark 3.5.5 · standalone cluster',
   },
   api: {
     id: 'api',
@@ -222,12 +306,15 @@ export const SYSTEM_FLOW_REPOS = {
       TECHNOLOGIES.uvicorn,
       TECHNOLOGIES.python,
       TECHNOLOGIES.postgresql,
+      TECHNOLOGIES.pydantic,
+      TECHNOLOGIES.sqlmodel,
+      TECHNOLOGIES.asyncpg,
       TECHNOLOGIES.pytest,
       TECHNOLOGIES.ruff,
       TECHNOLOGIES.mypy,
       TECHNOLOGIES.tox,
     ],
-    techNote: 'SQLModel · asyncpg',
+    techNote: 'SQLAlchemy 2 async · REST',
   },
   app: {
     id: 'app',
@@ -236,8 +323,15 @@ export const SYSTEM_FLOW_REPOS = {
     description: 'React dashboards consume GEO_API JSON for quality, quantity and event views.',
     logo: folderLogo,
     logoName: 'folder_no_text_symbol.png',
-    technologies: [TECHNOLOGIES.react, TECHNOLOGIES.vitest, TECHNOLOGIES.reactTesting],
-    techNote: 'Vite · Chart.js · Bootstrap',
+    technologies: [
+      TECHNOLOGIES.react,
+      TECHNOLOGIES.vite,
+      TECHNOLOGIES.chartjs,
+      TECHNOLOGIES.bootstrap,
+      TECHNOLOGIES.vitest,
+      TECHNOLOGIES.reactTesting,
+    ],
+    techNote: 'React Router 6',
   },
   visual: {
     id: 'visual',
@@ -250,12 +344,16 @@ export const SYSTEM_FLOW_REPOS = {
       TECHNOLOGIES.streamlit,
       TECHNOLOGIES.python,
       TECHNOLOGIES.postgresql,
+      TECHNOLOGIES.pandas,
+      TECHNOLOGIES.plotly,
+      TECHNOLOGIES.psycopg,
+      TECHNOLOGIES.pydantic,
       TECHNOLOGIES.pytest,
       TECHNOLOGIES.ruff,
       TECHNOLOGIES.mypy,
       TECHNOLOGIES.tox,
     ],
-    techNote: 'pandas · Plotly',
+    techNote: 'SQLAlchemy 2',
   },
 }
 
@@ -487,6 +585,7 @@ export const REPOSITORY_STACKS = [
       'PySpark 3.5.5 / Spark standalone',
       'Anaconda',
       'Supabase Postgres (geo_airflow metadata)',
+      'Pydantic 2',
       'Python 3.11',
     ],
   },
@@ -546,6 +645,7 @@ export const REPOSITORY_STACKS = [
       'Plotly',
       'SQLAlchemy 2',
       'Supabase Postgres (psycopg 3)',
+      'Pydantic 2',
       'pytest',
       'Ruff',
       'mypy',
