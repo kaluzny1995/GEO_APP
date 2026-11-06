@@ -35,8 +35,22 @@ const ICONS = {
   ),
   'file-csv': fileIcon('CSV'),
   'file-json': fileIcon('JSON'),
+  'file-sql': fileIcon('SQL'),
   'file-xml': fileIcon('XML'),
   'file-txt': fileIcon('TXT'),
+  http: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18" />
+      <path d="M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z" />
+    </>
+  ),
+  terminal: (
+    <>
+      <polyline points="4 17 10 11 4 5" />
+      <line x1="12" y1="19" x2="20" y2="19" />
+    </>
+  ),
 }
 
 export default function Icon({ name, size = 18, className = '', ...rest }) {

@@ -1,6 +1,6 @@
-# GEO_APP — Data Quality & Quantity Dashboard
+# GEO_APP — System Flow, Data Quality & Quantity Dashboard
 
-React JS data-visualization app for **data quality & quantity tables, charts, gauges and badges**.
+React JS data-visualization app for **system architecture, data quality & quantity tables, charts, gauges and badges**.
 
 UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim.com/product/black-dashboard-react)** by Creative Tim (MIT). Original template is CRA + Bootstrap 4; this repo re-implements the dark admin look on **Vite + React 18 + React Router + Bootstrap 5 + Chart.js**, with GEO-specific data quality & quantity views.
 
@@ -8,9 +8,19 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
 
 - `/overview` — welcome page with what GEO_APP is for, step-by-step
   instructions for reading the dashboard, a glossary of data-quality rules and
-  their meanings, and a button group linking to the five analysis dashboards
-  (Data Source Files, Data Quality, Data Quantity, Event Categories, Event
-  Locations). Data Source Files leads the group with its own amber button.
+  their meanings, and a button group linking to the six analysis dashboards
+  (System Flow, Data Source Files, Data Quality, Data Quantity, Event Categories,
+  Event Locations). System Flow leads the group with its own blue-violet button.
+- `/system-flow` — responsive architecture map of the six GEO repositories and
+  their technologies. Data sources feed GEO_Download (JSON and CSV edges), dated
+  CSVs flow through GEO_ETL into Supabase PostgreSQL (SQL/JDBC), GEO_API serves
+  the geo schema as JSON over HTTP to GEO_APP, and GEO_Visual reads the same
+  views directly over SQL. GEO_E2E sits above the pipeline with Airflow CLI
+  edges and its metadata-database edge. The vertical flow reflows with the
+  window width; every source and technology image has a readable label
+  underneath, and the database node combines the database symbol with the
+  Supabase and PostgreSQL logos. See [SYSTEM_FLOW.md](SYSTEM_FLOW.md) for the
+  full inventory.
 - `/data-source-files` — CSV snapshot inventory for GEO_Download's `data`
   folder, published by GEO_ETL's PySpark DATA_SOURCE_FILE job. A source dropdown lists
   every subfolder that contains `.csv` files; the table shows one row per
@@ -78,7 +88,9 @@ environment variable.
 
 ## API
 
-The app expects GEO_API running at `http://localhost:8000` (the base URL is set
+The System Flow view is a static architecture map built from
+`src/data/systemFlow.js`; it makes no API request. The data views expect GEO_API
+running at `http://localhost:8000` (the base URL is set
 in `src/config.js`). Data-quality snapshots come from the `/data-quality/...`
 endpoints; see [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for their
 contract. The Data Quality view also reads:
@@ -145,7 +157,7 @@ the final image.
 - `VITE_API_BASE` is compiled at build time and defaults to `http://localhost:8000`.
   It must be reachable from the browser, not from inside the Compose network.
 - The container depends on `geo_fastapi` being healthy before it starts.
-- nginx uses a history fallback so React Router paths (`/overview`, `/data-source-files`, `/data-quality`, …)
+- nginx uses a history fallback so React Router paths (`/overview`, `/system-flow`, `/data-source-files`, `/data-quality`, …)
   work on a direct refresh.
 
 ```bash
@@ -178,8 +190,8 @@ npm run lint     # ESLint
 ## Testing
 
 The full automated test inventory, including every test case and manual browser
-checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 36
-test files and 256 passing tests. `npm test` runs the suite once; use
+checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 39
+test files and 281 passing tests. `npm test` runs the suite once; use
 `npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
 
 ## Project structure
@@ -191,19 +203,21 @@ GEO_APP/
 ├── vite.config.js
 ├── vitest.config.js
 ├── DATA_QUALITY_METRICS.md  # GEO_API endpoint contract, metrics & rules
+├── SYSTEM_FLOW.md           # repository/technology map and flow inventory
 ├── TESTS.md                 # automated test inventory & manual checks
 ├── src/
 │   ├── main.jsx             # BrowserRouter + Bootstrap + theme CSS
 │   ├── App.jsx              # Admin shell (Sidebar + TopNavbar + Routes)
 │   ├── config.js            # app config (API, tables, thresholds, labels, regions)
-│   ├── routes.js            # route table (overview, source files, quality, quantity, event tabs)
+│   ├── routes.js            # route table (overview, system flow, source files, quality, …)
 │   ├── api/client.js        # shared fetch + timeout / API-down handling
 │   ├── api/dataQuality.js   # GEO_API data-quality client (date discovery)
 │   ├── api/dataQuantity.js  # actual table-count fetcher for the flow diagram
 │   ├── api/dataSourceFiles.js # GEO_Download CSV metadata fetcher
 │   ├── api/eventCounts.js   # GEO_API event-count endpoints
-│   ├── views/               # Landing, DataSourceFilesView, DataQualityView, …
-│   ├── components/          # Sidebar, GaugeCard, tables, DownloadMenu, DataSourceFilesChart, Pagination, …
+│   ├── data/systemFlow.js   # system-flow nodes, edges, logos, layouts and stacks
+│   ├── views/               # Landing, SystemFlowView, DataSourceFilesView, DataQualityView, …
+│   ├── components/          # Sidebar, SystemFlowDiagram, GaugeCard, tables, DownloadMenu, …
 │   ├── utils/quality.js     # overallScore / toneFor / changeTone helpers
 │   ├── utils/dataQuantity.js # quantity extraction, flow pairs, difference labels
 │   ├── utils/dataSourceFiles.js # date-range expansion, missing rows, sorting

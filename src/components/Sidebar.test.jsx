@@ -7,6 +7,7 @@ import { ROUTER_FUTURE_FLAGS } from '../config.js'
 vi.mock('../routes.js', () => ({
   default: [
     { path: '/overview', name: 'Overview', layout: '' },
+    { path: '/system-flow', name: 'System Flow', layout: '' },
     { path: '/data-quality', name: 'Data Quality', layout: '' },
     { path: '/data-quantity', name: 'Data Quantity', layout: '' },
   ],
@@ -31,6 +32,12 @@ describe('Sidebar', () => {
   it('renders Overview nav link', () => {
     renderSidebar()
     expect(screen.getByText('Overview')).toBeInTheDocument()
+  })
+
+  it('renders System Flow nav link pointing to /system-flow', () => {
+    renderSidebar()
+    const navLink = screen.getByRole('link', { name: 'System Flow' })
+    expect(navLink).toHaveAttribute('href', '/system-flow')
   })
 
   it('renders Data Quality nav link pointing to /data-quality', () => {

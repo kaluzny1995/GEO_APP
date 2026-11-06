@@ -24,12 +24,17 @@ describe('Icon', () => {
     const { container, rerender } = render(<Icon name="download" />)
     expect(container.querySelector('svg')).toHaveClass('icon-download')
 
-    for (const format of ['csv', 'json', 'xml', 'txt']) {
+    for (const format of ['csv', 'json', 'sql', 'xml', 'txt']) {
       rerender(<Icon name={`file-${format}`} />)
       const svg = container.querySelector('svg')
       expect(svg).toHaveClass(`icon-file-${format}`)
       expect(svg.querySelector('text')).toHaveTextContent(format.toUpperCase())
     }
+
+    rerender(<Icon name="http" />)
+    expect(container.querySelector('svg')).toHaveClass('icon-http')
+    rerender(<Icon name="terminal" />)
+    expect(container.querySelector('svg')).toHaveClass('icon-terminal')
   })
 
   it('renders nothing for an unknown icon name', () => {

@@ -68,6 +68,9 @@ export default function Landing() {
           <p className="muted">{APP_OVERVIEW_SUBTITLE}</p>
         </div>
         <div className="btn-group" role="group" aria-label="Dashboards">
+          <NavLink to={ROUTES.systemFlow} className="btn btn-sm btn-flow">
+            System Flow
+          </NavLink>
           <NavLink to={ROUTES.dataSourceFiles} className="btn btn-sm btn-files">
             Data Source Files
           </NavLink>
@@ -89,14 +92,47 @@ export default function Landing() {
       <div className="card overview-card">
         <h3>What is GEO_APP for?</h3>
         <p className="muted">
-          GEO_APP is a React front-end for exploring data quality and event quantity
-          across geographic datasets (events, wildfires, cyclones, earthquakes,
-          volcanoes, floods, rivers and avalanches). It connects to the GEO_API to fetch data-quality metrics for each
+          GEO_APP is a React front-end for exploring the system architecture,
+          data quality and event quantity across geographic datasets (events,
+          wildfires, cyclones, earthquakes, volcanoes, floods, rivers and
+          avalanches). It connects to the GEO_API to fetch data-quality metrics for each
           dataset table and snapshot via the {API_PATHS.dataQuality}/&#123;table_name&#125;/&#123;file_date&#125;
           endpoint — snapshot dates are discovered with a file-dates probe — so you can
           see at a glance which datasets are healthy, which need attention, and which
           rules are failing.
         </p>
+      </div>
+
+      <div className="card overview-card">
+        <h3>How to read the System flow view</h3>
+        <p className="muted">
+          The System Flow tab maps the six GEO repositories and the technologies they use.
+          It follows data from the nine public sources through GEO_Download, the CSV store,
+          GEO_ETL and Supabase PostgreSQL, then on to GEO_API, GEO_APP and GEO_Visual.
+        </p>
+        <ol className="muted" style={{ marginLeft: 20 }}>
+          <li>
+            Open it with the button above or the &quot;System Flow&quot; link in the
+            sidebar — the address is <code>{ROUTES.systemFlow}</code>.
+          </li>
+          <li>
+            Follow the arrows left to right. Edge badges show the transfer format:
+            <strong> CSV</strong> for dated snapshots, <strong>JSON</strong> for API feeds
+            and REST responses, <strong>SQL</strong> for JDBC/asyncpg/psycopg traffic,
+            <strong> HTTP</strong> for browser-to-API calls and <strong>CLI</strong> for
+            Airflow task subprocesses.
+          </li>
+          <li>
+            Every source and technology image has its name underneath. The{' '}
+            <code>no_text</code> assets keep the image itself free of a duplicate
+            wordmark, while wordmark logos get a reinforcing label.
+          </li>
+          <li>
+            The database card combines the database symbol with the Supabase and PostgreSQL
+            logos, and the technology inventory below the diagram lists libraries that do
+            not have a logo.
+          </li>
+        </ol>
       </div>
 
       <div className="card overview-card">

@@ -5,11 +5,12 @@
 export const APP_NAME = 'GEO_APP'
 export const APP_TAGLINE = 'Data Quality & Quantity'
 export const APP_TITLE = `${APP_NAME} · ${APP_TAGLINE}`
-export const APP_OVERVIEW_SUBTITLE = 'Geographic data quality & quantity overview'
+export const APP_OVERVIEW_SUBTITLE = 'Geographic system flow, data quality & quantity overview'
 
 // --- App routes ---
 export const ROUTES = {
   overview: '/overview',
+  systemFlow: '/system-flow',
   dataSourceFiles: '/data-source-files',
   dataQuality: '/data-quality',
   dataQuantity: '/data-quantity',
@@ -109,7 +110,7 @@ export const TABLE_FLOW = PLAIN_TABLE_NAMES.map((plain) => ({
   etl: `${plain}${ETL_SUFFIX}`,
 }))
 
-export const APP_SUBTITLE = `Monitor data quality and event quantity across ${TABLE_NAMES.length} geographic dataset tables`
+export const APP_SUBTITLE = `Monitor system architecture, data quality and event quantity across ${TABLE_NAMES.length} geographic dataset tables`
 
 // --- Scoring ---
 // DAMA dimension scores are 0-100: >= good is ok, >= warn needs attention.

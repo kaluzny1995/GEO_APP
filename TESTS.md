@@ -5,12 +5,12 @@ updated whenever the test suite or test counts change.
 
 ## Current status
 
-- **Test files:** 36
-- **Tests:** 256 passing
+- **Test files:** 39
+- **Tests:** 281 passing
 - **Framework:** Vitest 2.1.9 + jsdom
 - **Libraries:** React Testing Library, `@testing-library/user-event`,
   `@testing-library/jest-dom`
-- **Last verified:** 2026-11-04 with `npm test`, `npm run lint` and
+- **Last verified:** 2026-11-06 with `npm test`, `npm run lint` and
   `npm run build`
 
 ## How to run
@@ -47,43 +47,48 @@ npx vitest run --reporter=verbose
 
 | Area | Test files | Tests |
 |------|-----------:|------:|
-| App shell and routing | 4 | 19 |
-| Overview page | 1 | 12 |
+| App shell and routing | 4 | 22 |
+| Overview page | 1 | 13 |
+| System flow | 3 | 21 |
 | Data source files view | 4 | 32 |
 | Data quality views and charts | 6 | 66 |
 | Data quantity flow | 4 | 20 |
 | Event categories and locations | 4 | 20 |
 | Shared UI components | 6 | 23 |
 | Utilities, API clients and visual config | 7 | 64 |
-| **Total** | **36** | **256** |
+| **Total** | **39** | **281** |
 
-## App shell and routing (19)
+## App shell and routing (22)
 
-### `src/App.test.jsx` (6)
+### `src/App.test.jsx` (7)
 
 Covers the admin shell, route matching, default redirect and unknown-route
 redirect.
 
 - renders sidebar, navbar, and content
 - navigates to overview by default
+- navigates to system flow view when route matches
 - navigates to data quality view when route matches
 - navigates to data source files view when route matches
 - navigates to data quantity view when route matches
 - redirects unknown routes to overview
 
-### `src/routes.test.js` (2)
+### `src/routes.test.js` (3)
 
-Covers the sidebar route order and the configured data-source-files path.
+Covers the sidebar route order and the configured System Flow and
+Data Source Files paths.
 
-- places Data Source Files between Overview and Data Quality
+- places System Flow after Overview and before Data Source Files and Data Quality
+- uses the configured system-flow path
 - uses the configured data-source-files path
 
-### `src/components/Sidebar.test.jsx` (5)
+### `src/components/Sidebar.test.jsx` (6)
 
 Covers branding, navigation links and footer content in the sidebar.
 
 - renders brand logo and name
 - renders Overview nav link
+- renders System Flow nav link pointing to `/system-flow`
 - renders Data Quality nav link pointing to `/data-quality`
 - renders Data Quantity nav link pointing to `/data-quantity`
 - renders footer text
@@ -100,16 +105,17 @@ future-flag warnings and no uncaught errors during the initial render.
 - should not log React Router future flag warnings
 - should not log any uncaught errors during initial render
 
-## Overview page (12)
+## Overview page (13)
 
-### `src/views/Landing.test.jsx` (12)
+### `src/views/Landing.test.jsx` (13)
 
 Covers the landing copy, dashboard links, quality-rule glossary, workflow
 instructions, event-count explanation and dataset inventory.
 
 - renders title and description
 - renders what is GEO_APP section
-- renders dashboard buttons for source files, quality, quantity, categories and locations
+- renders dashboard buttons for system flow, source files, quality, quantity, categories and locations
+- renders instructions for the System flow view
 - lists the data quality rules and what they mean
 - explains that defaults load automatically and dropdowns reload metrics
 - renders instructions for the Data Quality dashboard
@@ -119,6 +125,47 @@ instructions, event-count explanation and dataset inventory.
 - renders instructions for the Event Locations dashboard
 - orders the view cards like the sidebar navigation
 - lists available datasets
+
+## System flow (21)
+
+### `src/data/systemFlow.test.js` (10)
+
+Covers the repository/source inventory, Airflow UI tile, database composition,
+flow formats and edge lookup.
+
+- lists the six repositories in pipeline order
+- gives every repository a folder image and at least one technology
+- lists nine data sources: seven JSON APIs and two CSV feeds
+- uses the Airflow image for Airflow UI and the Streamlit image for GEO_Visual
+- combines the database symbol with Supabase and PostgreSQL
+- describes the CSV store with a labelled folder symbol
+- uses every flow kind in at least one relationship
+- models the pipeline formats between components
+- exposes an edge lookup for the diagram connectors
+- connects Airflow to the download, ETL and metadata database nodes
+
+### `src/components/SystemFlowDiagram.test.jsx` (6)
+
+Covers repository/source nodes, readable technology labels, the combined
+database node, edge badges, connector labels and GEO_E2E orchestration links.
+
+- renders every repository node with its name and folder image
+- renders every data source with its name and JSON or CSV format badge
+- renders a readable label under every technology image
+- combines Supabase and PostgreSQL in the database node
+- renders a badge group for every relationship
+- renders connector labels and the GEO_E2E orchestration links
+
+### `src/views/SystemFlowView.test.jsx` (5)
+
+Covers the view header, responsive diagram, legend, technology inventory and
+reading instructions.
+
+- renders the title, subtitle and back link
+- renders the interactive system flow diagram
+- renders the flow legend for every transfer format
+- renders the complete technology inventory for all six repositories
+- explains how to read the diagram and the responsive labels
 
 ## Data source files view (32)
 
@@ -383,7 +430,7 @@ fallback.
 
 - renders the circular-arrows-couple icon as a decorative SVG
 - accepts a custom size and class name
-- renders download and file-format icons
+- renders download and file-format icons (CSV, JSON, SQL, XML, TXT, HTTP, CLI)
 - renders nothing for an unknown icon name
 
 ### `src/components/Pagination.test.jsx` (4)
@@ -556,11 +603,19 @@ changes:
   reset to page 1 after sorting, and the download menu exports every row for
   the selected source (including missing and undated files) in all four
   formats. Confirm the Retry path works with the API stopped.
-- Overview: confirm the amber **Data Source Files** button is first in the
-  dashboard button group and links to `/data-source-files`, and that the cards
-  follow the sidebar order — What is GEO_APP for?, Data Source Files, Data
-  Quality, Data Quantity, Event Categories, Event Locations, Data quality
-  rules, Available dataset tables. Each of the five view cards links to its
-  route and describes its own layout; Event Categories and Event Locations have
-  separate cards, and the Data Source Files card covers the timeline,
+- System Flow: open `/system-flow`, confirm the GEO_E2E banner sits above the
+  pipeline, the nine source logos feed GEO_Download with JSON and CSV badges,
+  the CSV store → GEO_ETL → Supabase PostgreSQL path is connected, GEO_API →
+  GEO_APP shows HTTP and JSON badges, GEO_Visual reads the database over SQL,
+  every `no_text` asset has a visible label, the database card reads
+  **Supabase PostgreSQL**, and the diagram scrolls horizontally without
+  overflowing the page on narrow screens. Check the flow legend and the
+  six-row technology inventory below the diagram.
+- Overview: confirm the blue-violet **System Flow** button is first in the
+  dashboard button group and links to `/system-flow`, and that the cards
+  follow the sidebar order — What is GEO_APP for?, System Flow, Data Source
+  Files, Data Quality, Data Quantity, Event Categories, Event Locations, Data
+  quality rules, Available dataset tables. Each of the six view cards links to
+  its route and describes its own layout; Event Categories and Event Locations
+  have separate cards, and the Data Source Files card covers the timeline,
   missing-date highlighting, pagination and full-table download.

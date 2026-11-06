@@ -41,6 +41,12 @@ vi.mock('./views/Landing.jsx', () => ({
   },
 }))
 
+vi.mock('./views/SystemFlowView.jsx', () => ({
+  default: function SystemFlowView() {
+    return <div className="system-flow-view">System Flow View</div>
+  },
+}))
+
 vi.mock('./views/DataSourceFilesView.jsx', () => ({
   default: function DataSourceFilesView() {
     return <div className="data-source-files-view">Data Source Files View</div>
@@ -75,7 +81,7 @@ describe('App', () => {
     expect(screen.getByText('GEO_APP')).toBeInTheDocument()
     expect(screen.getByText('GEO_APP · Data Quality & Quantity')).toBeInTheDocument()
     expect(
-      screen.getByText('Monitor data quality and event quantity across 19 geographic dataset tables')
+      screen.getByText('Monitor system architecture, data quality and event quantity across 19 geographic dataset tables')
     ).toBeInTheDocument()
     expect(screen.getByText('Landing page')).toBeInTheDocument()
     expect(screen.getByText('Footer')).toBeInTheDocument()
@@ -84,6 +90,13 @@ describe('App', () => {
   it('navigates to overview by default', () => {
     renderWithRouter(<App />)
     expect(screen.getByText('Landing page')).toBeInTheDocument()
+  })
+
+  it('navigates to system flow view when route matches', () => {
+    goTo('/system-flow')
+    renderWithRouter(<App />)
+    expect(screen.getByText('System Flow View')).toBeInTheDocument()
+    expect(screen.queryByText('Landing page')).not.toBeInTheDocument()
   })
 
   it('navigates to data quality view when route matches', () => {

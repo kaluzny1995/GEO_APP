@@ -15,30 +15,47 @@ describe('Landing', () => {
   it('renders title and description', () => {
     renderLanding()
     expect(screen.getByText('GEO_APP')).toBeInTheDocument()
-    expect(screen.getByText('Geographic data quality & quantity overview')).toBeInTheDocument()
+    expect(screen.getByText('Geographic system flow, data quality & quantity overview')).toBeInTheDocument()
   })
 
   it('renders what is GEO_APP section', () => {
     renderLanding()
     expect(screen.getByText('What is GEO_APP for?')).toBeInTheDocument()
-    expect(screen.getByText(/GEO_APP is a React front-end for exploring data quality and event quantity/i)).toBeInTheDocument()
+    expect(screen.getByText(/GEO_APP is a React front-end for exploring the system architecture, data quality and event quantity/i)).toBeInTheDocument()
   })
 
-  it('renders dashboard buttons for source files, quality, quantity, categories and locations', () => {
+  it('renders dashboard buttons for system flow, source files, quality, quantity, categories and locations', () => {
     renderLanding()
     const group = screen.getByRole('group', { name: /dashboards/i })
+    const systemFlow = within(group).getByRole('link', { name: 'System Flow' })
     const sourceFiles = within(group).getByRole('link', { name: 'Data Source Files' })
     const quality = within(group).getByRole('link', { name: 'Data Quality' })
     const quantity = within(group).getByRole('link', { name: 'Data Quantity' })
     const categories = within(group).getByRole('link', { name: 'Event Categories' })
     const locations = within(group).getByRole('link', { name: 'Event Locations' })
 
+    expect(systemFlow).toHaveAttribute('href', '/system-flow')
     expect(sourceFiles).toHaveAttribute('href', '/data-source-files')
     expect(quality).toHaveAttribute('href', '/data-quality')
     expect(quantity).toHaveAttribute('href', '/data-quantity')
     expect(categories).toHaveAttribute('href', '/event-categories')
     expect(locations).toHaveAttribute('href', '/event-locations')
-    expect(group.firstElementChild).toBe(sourceFiles)
+    expect(group.firstElementChild).toBe(systemFlow)
+  })
+
+  it('renders instructions for the System flow view', () => {
+    renderLanding()
+    const card = screen.getByRole('heading', { name: 'How to read the System flow view' }).closest('.card')
+
+    expect(card).toHaveTextContent('/system-flow')
+    expect(card).toHaveTextContent(/six GEO repositories/i)
+    expect(card).toHaveTextContent(/nine public sources/i)
+    expect(card).toHaveTextContent(/CSV/i)
+    expect(card).toHaveTextContent(/JSON/i)
+    expect(card).toHaveTextContent(/SQL/i)
+    expect(card).toHaveTextContent(/HTTP/i)
+    expect(card).toHaveTextContent(/CLI/i)
+    expect(card).toHaveTextContent(/every source and technology image has its name underneath/i)
   })
 
   it('renders instructions for the Data Source Files dashboard', () => {
@@ -125,6 +142,7 @@ describe('Landing', () => {
 
     expect(headings).toEqual([
       'What is GEO_APP for?',
+      'How to read the System flow view',
       'How to read the Data Source Files dashboard',
       'How to read the Data Quality dashboard',
       'How to read the Data Quantity dashboard',
