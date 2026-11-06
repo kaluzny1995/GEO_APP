@@ -244,7 +244,7 @@ tables).
 The **Data Quality** table dropdown is populated from `GET /data-quality/tables`,
 which introspects `information_schema.tables` for the `geo` schema: 9 source
 tables, their 9 `_etl` tables, the 17 `*_vw` views and `union_etl` (36 relations
-today). Internal `*_raw` staging tables and `data_quality` itself are excluded.
+today). The internal `data_quality` metrics table is excluded.
 Views are listed for completeness; data-quality metrics are only written for the
 19 measured source/ETL/union tables, so selecting a view shows the “no snapshots”
 message until a quality job is added for it.

@@ -84,7 +84,7 @@ endpoints; see [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for their
 contract. The Data Quality view also reads:
 
 - `GET /data-quality/tables` — the authoritative `geo` table/view list for the
-  table dropdown (source + `_etl` + `_vw` relations, excluding `_raw` and
+  table dropdown (source + `_etl` + `_vw` relations, excluding
   `data_quality`)
 
 The Data Quantity view uses the dedicated quantity endpoints:
@@ -216,12 +216,13 @@ GEO_APP/
 
 ## Related Projects
 
-GEO_APP is the presentation layer of the GIS data pipeline. The five projects sit as siblings under `GeographicData/`:
+GEO_APP is the React presentation layer of the GIS data pipeline. The six projects sit as siblings under `GeographicData/`:
 
 - **[GEO_API](../GEO_API)** — the FastAPI backend this dashboard talks to (`src/config.js` → `http://localhost:8000`); provides the `/data-quality/...`, `/data-source-files` and `/event-counts/...` endpoints.
 - **[GEO_ETL](../GEO_ETL)** — PySpark ETL that writes the `geo.data_quality` metrics and `geo.union_etl` counts GEO_API serves.
 - **[GEO_Download](../GEO_Download)** — fetches the raw source data into dated CSVs.
 - **[GEO_E2E](../GEO_E2E)** — Airflow orchestrator that schedules the download and the ETL, and hosts the shared Supabase credentials setup.
+- **[GEO_Visual](../GEO_Visual)** — Streamlit dashboard served by the `geo_streamlit` container in GEO_E2E; it reads the same Supabase views directly (read-only SQL) for analytical pages and does not use GEO_API.
 
 ## Credits
 
