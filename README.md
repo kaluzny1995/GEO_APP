@@ -150,14 +150,14 @@ the final image.
 
 ```bash
 cd ../GEO_E2E
-docker compose up -d --build geo_react_app
+./up.sh -d --build geo_react_app   # preflight (six repos + Supabase .env), then compose up
 ```
 
 After changing `src/`, `public/`, `index.html` or the API URL, rebuild the image:
 
 ```bash
 docker compose build geo_react_app
-docker compose up -d geo_react_app
+./up.sh -d geo_react_app
 ```
 
 `docker compose restart geo_react_app` does **not** pick up source changes.
