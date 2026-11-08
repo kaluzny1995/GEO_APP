@@ -43,10 +43,10 @@ describe('systemFlow data', () => {
     const expectedTechs = {
       e2e: ['pydantic'],
       download: ['requests', 'pydantic'],
-      etl: ['pydantic', 'jdbc'],
-      api: ['pydantic', 'sqlmodel', 'asyncpg'],
-      app: ['vite', 'chartjs', 'bootstrap'],
-      visual: ['pandas', 'plotly', 'psycopg', 'pydantic'],
+      etl: ['pyspark', 'pydantic', 'jdbc'],
+      api: ['rest', 'pydantic', 'sqlmodel', 'sqlalchemy', 'asyncpg'],
+      app: ['react-router', 'vite', 'chartjs', 'bootstrap'],
+      visual: ['sqlalchemy', 'pandas', 'plotly', 'psycopg', 'pydantic'],
     }
     Object.entries(expectedTechs).forEach(([repoId, techIds]) => {
       const actualIds = SYSTEM_FLOW_REPOS[repoId].technologies.map((tech) => tech.id)

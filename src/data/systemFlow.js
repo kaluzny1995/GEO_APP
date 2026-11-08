@@ -29,14 +29,18 @@ import plotlyLogo from '../assets/logos/technology/plotly_no_text_logo.png'
 import postgresqlLogo from '../assets/logos/technology/postgresql_no_text_logo.webp'
 import psycopgLogo from '../assets/logos/technology/psycopg_no_text_logo.png'
 import pydanticLogo from '../assets/logos/technology/pydantic_no_text_logo.png'
+import pysparkLogo from '../assets/logos/technology/pyspark_logo.avif'
 import pytestLogo from '../assets/logos/technology/pytest_logo.webp'
 import pythonMypyLogo from '../assets/logos/technology/python_mypy_logo.png'
 import pythonLogo from '../assets/logos/technology/python_no_text_logo.webp'
 import reactLogo from '../assets/logos/technology/react_js_no_text_logo.webp'
+import reactRouterLogo from '../assets/logos/technology/react_router_no_text_logo.svg'
 import reactTestingLogo from '../assets/logos/technology/react_testing_no_text_logo.webp'
 import requestsLogo from '../assets/logos/technology/requests_logo.png'
+import restLogo from '../assets/logos/technology/rest_logo.webp'
 import ruffLogo from '../assets/logos/technology/ruff_no_text_logo.png'
 import sparkLogo from '../assets/logos/technology/spark_logo.webp'
+import sqlalchemyLogo from '../assets/logos/technology/sqlalchemy_no_text_logo.png'
 import sqlmodelLogo from '../assets/logos/technology/sqlmodel_logo.svg'
 import streamlitLogo from '../assets/logos/technology/streamlit_no_text_logo.png'
 import supabaseLogo from '../assets/logos/technology/supabase_no_text_logo.png'
@@ -138,11 +142,24 @@ export const TECHNOLOGIES = {
     logo: pydanticLogo,
     logoName: 'pydantic_no_text_logo.png',
   },
+  pyspark: {
+    id: 'pyspark',
+    name: 'PySpark',
+    logo: pysparkLogo,
+    logoName: 'pyspark_logo.avif',
+    wide: true,
+  },
   requests: {
     id: 'requests',
     name: 'requests',
     logo: requestsLogo,
     logoName: 'requests_logo.png',
+  },
+  rest: {
+    id: 'rest',
+    name: 'REST',
+    logo: restLogo,
+    logoName: 'rest_logo.webp',
   },
   postgresql: {
     id: 'postgresql',
@@ -169,6 +186,13 @@ export const TECHNOLOGIES = {
     logo: reactLogo,
     logoName: 'react_js_no_text_logo.webp',
   },
+  reactRouter: {
+    id: 'react-router',
+    name: 'React Router',
+    logo: reactRouterLogo,
+    logoName: 'react_router_no_text_logo.svg',
+    wide: true,
+  },
   reactTesting: {
     id: 'react-testing',
     name: 'React Testing Library',
@@ -187,6 +211,12 @@ export const TECHNOLOGIES = {
     logo: sparkLogo,
     logoName: 'spark_logo.webp',
     wide: true,
+  },
+  sqlalchemy: {
+    id: 'sqlalchemy',
+    name: 'SQLAlchemy',
+    logo: sqlalchemyLogo,
+    logoName: 'sqlalchemy_no_text_logo.png',
   },
   sqlmodel: {
     id: 'sqlmodel',
@@ -282,6 +312,7 @@ export const SYSTEM_FLOW_REPOS = {
     logo: folderLogo,
     logoName: 'folder_no_text_symbol.png',
     technologies: [
+      TECHNOLOGIES.pyspark,
       TECHNOLOGIES.spark,
       TECHNOLOGIES.python,
       TECHNOLOGIES.postgresql,
@@ -292,7 +323,7 @@ export const SYSTEM_FLOW_REPOS = {
       TECHNOLOGIES.mypy,
       TECHNOLOGIES.tox,
     ],
-    techNote: 'PySpark 3.5.5 · standalone cluster',
+    techNote: 'Standalone cluster',
   },
   api: {
     id: 'api',
@@ -303,18 +334,20 @@ export const SYSTEM_FLOW_REPOS = {
     logoName: 'folder_no_text_symbol.png',
     technologies: [
       TECHNOLOGIES.fastapi,
+      TECHNOLOGIES.rest,
       TECHNOLOGIES.uvicorn,
       TECHNOLOGIES.python,
       TECHNOLOGIES.postgresql,
       TECHNOLOGIES.pydantic,
       TECHNOLOGIES.sqlmodel,
+      TECHNOLOGIES.sqlalchemy,
       TECHNOLOGIES.asyncpg,
       TECHNOLOGIES.pytest,
       TECHNOLOGIES.ruff,
       TECHNOLOGIES.mypy,
       TECHNOLOGIES.tox,
     ],
-    techNote: 'SQLAlchemy 2 async · REST',
+    techNote: 'OpenAPI docs',
   },
   app: {
     id: 'app',
@@ -325,13 +358,14 @@ export const SYSTEM_FLOW_REPOS = {
     logoName: 'folder_no_text_symbol.png',
     technologies: [
       TECHNOLOGIES.react,
+      TECHNOLOGIES.reactRouter,
       TECHNOLOGIES.vite,
       TECHNOLOGIES.chartjs,
       TECHNOLOGIES.bootstrap,
       TECHNOLOGIES.vitest,
       TECHNOLOGIES.reactTesting,
     ],
-    techNote: 'React Router 6',
+    techNote: 'Single-page dashboard',
   },
   visual: {
     id: 'visual',
@@ -347,13 +381,14 @@ export const SYSTEM_FLOW_REPOS = {
       TECHNOLOGIES.pandas,
       TECHNOLOGIES.plotly,
       TECHNOLOGIES.psycopg,
+      TECHNOLOGIES.sqlalchemy,
       TECHNOLOGIES.pydantic,
       TECHNOLOGIES.pytest,
       TECHNOLOGIES.ruff,
       TECHNOLOGIES.mypy,
       TECHNOLOGIES.tox,
     ],
-    techNote: 'SQLAlchemy 2',
+    techNote: 'Read-only views',
   },
 }
 
@@ -613,6 +648,7 @@ export const REPOSITORY_STACKS = [
     role: 'Serving',
     technologies: [
       'FastAPI',
+      'REST API',
       'Uvicorn',
       'Pydantic 2',
       'SQLModel + SQLAlchemy 2 async',
