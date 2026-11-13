@@ -40,6 +40,7 @@ import requestsLogo from '../assets/logos/technology/requests_logo.png'
 import restLogo from '../assets/logos/technology/rest_logo.webp'
 import ruffLogo from '../assets/logos/technology/ruff_no_text_logo.png'
 import sparkLogo from '../assets/logos/technology/spark_logo.webp'
+import sparkMllibLogo from '../assets/logos/technology/spark_mlib_logo.png'
 import sqlalchemyLogo from '../assets/logos/technology/sqlalchemy_no_text_logo.png'
 import sqlmodelLogo from '../assets/logos/technology/sqlmodel_logo.svg'
 import streamlitLogo from '../assets/logos/technology/streamlit_no_text_logo.png'
@@ -212,6 +213,13 @@ export const TECHNOLOGIES = {
     logoName: 'spark_logo.webp',
     wide: true,
   },
+  sparkMllib: {
+    id: 'spark-mllib',
+    name: 'PySpark MLlib',
+    logo: sparkMllibLogo,
+    logoName: 'spark_mlib_logo.png',
+    wide: true,
+  },
   sqlalchemy: {
     id: 'sqlalchemy',
     name: 'SQLAlchemy',
@@ -308,12 +316,14 @@ export const SYSTEM_FLOW_REPOS = {
     id: 'etl',
     name: 'GEO_ETL',
     role: 'Transformation',
-    description: 'PySpark casts, deduplicates and enriches CSV data, then loads the geo schema.',
+    description:
+      'PySpark casts, deduplicates, enriches and predicts missing metric values, then loads the geo schema.',
     logo: folderLogo,
     logoName: 'folder_no_text_symbol.png',
     technologies: [
       TECHNOLOGIES.pyspark,
       TECHNOLOGIES.spark,
+      TECHNOLOGIES.sparkMllib,
       TECHNOLOGIES.python,
       TECHNOLOGIES.postgresql,
       TECHNOLOGIES.pydantic,
@@ -323,7 +333,7 @@ export const SYSTEM_FLOW_REPOS = {
       TECHNOLOGIES.mypy,
       TECHNOLOGIES.tox,
     ],
-    techNote: 'Standalone cluster',
+    techNote: 'Standalone cluster · MLlib predictions',
   },
   api: {
     id: 'api',
@@ -635,6 +645,7 @@ export const REPOSITORY_STACKS = [
     technologies: [
       'PySpark 3.5.5',
       'Spark standalone',
+      'PySpark MLlib predictions',
       'Supabase Postgres (JDBC)',
       'Pydantic 2',
       'pytest',

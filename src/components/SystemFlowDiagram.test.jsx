@@ -57,6 +57,7 @@ describe('SystemFlowDiagram', () => {
       ['download', 'requests', 'requests'],
       ['download', 'pydantic', 'Pydantic'],
       ['etl', 'pyspark', 'PySpark'],
+      ['etl', 'spark-mllib', 'PySpark MLlib'],
       ['etl', 'jdbc', 'JDBC'],
       ['api', 'rest', 'REST'],
       ['api', 'sqlmodel', 'SQLModel'],

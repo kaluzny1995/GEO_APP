@@ -13,7 +13,8 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
   Event Locations). System Flow leads the group with its own blue-violet button.
 - `/system-flow` — responsive architecture map of the six GEO repositories and
   their technologies. Data sources feed GEO_Download (JSON and CSV edges), dated
-  CSVs flow through GEO_ETL into Supabase PostgreSQL (SQL/JDBC), GEO_API serves
+  CSVs flow through GEO_ETL into Supabase PostgreSQL (SQL/JDBC), with PySpark
+  MLlib filling missing metric dates, GEO_API serves
   the geo schema as JSON over HTTP to GEO_APP, and GEO_Visual reads the same
   views directly over SQL. GEO_E2E sits above the pipeline with Airflow CLI
   edges and its metadata-database edge. The vertical flow reflows with the

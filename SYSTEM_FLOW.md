@@ -38,7 +38,7 @@ flowchart LR
 |------------|------|--------------|
 | **GEO_E2E** | Orchestration | Airflow 3.3.2 DAG (`geo_pipeline`) runs download and ETL jobs as BashOperator subprocesses. Docker Compose builds and runs the Airflow/Spark image plus the API, React and Streamlit containers. Airflow metadata lives in the Supabase `geo_airflow` schema. |
 | **GEO_Download** | Data acquisition | Fetches nine public APIs/feeds, reverse-geocodes rows, maintains reference CSVs and writes dated snapshots to `GEO_Download/data/<Source>/`. |
-| **GEO_ETL** | Transformation | PySpark 3.5.5 casts, deduplicates and enriches the CSV snapshots, writes plain and `_etl` tables to the `geo` schema, builds `union_etl`, records `data_quality`, publishes `data_source_files`, and creates the 17 union views. |
+| **GEO_ETL** | Transformation | PySpark 3.5.5 casts, deduplicates and enriches the CSV snapshots, writes plain and `_etl` tables to the `geo` schema, builds `union_etl`, records `data_quality`, publishes `data_source_files`, fills missing metric dates with PySpark MLlib predictions in `prediction_etl`, and creates the 18 union views. |
 | **GEO_API** | Serving | FastAPI + Uvicorn REST layer over the `geo` schema. Serves data-quality, data-quantity, data-source-file and event-count JSON endpoints. |
 | **GEO_APP** | Presentation | This React 18 dashboard. Consumes GEO_API JSON and renders quality, quantity, source-file and event views. |
 | **GEO_Visual** | Analytics | Streamlit dashboards that read the `geo` views directly from Supabase PostgreSQL with SQLAlchemy/psycopg 3 (read-only SQL, no GEO_API hop). |
@@ -59,8 +59,9 @@ flowchart LR
 
 The two arrows from the source panel to GEO_Download carry **JSON** (7 APIs) and
 **CSV** (2 feeds). Everything after GEO_Download is CSV until GEO_ETL writes to
-PostgreSQL over **SQL/JDBC**. GEO_API reads with **SQL/asyncpg**, GEO_APP talks
-**HTTP/JSON**, and GEO_Visual reads with **SQL/psycopg**.
+PostgreSQL over **SQL/JDBC**, including the PySpark MLlib prediction rows.
+GEO_API reads with **SQL/asyncpg**, GEO_APP talks **HTTP/JSON**, and GEO_Visual
+reads with **SQL/psycopg**.
 
 ## Relationship inventory
 
@@ -70,7 +71,7 @@ PostgreSQL over **SQL/JDBC**. GEO_API reads with **SQL/asyncpg**, GEO_APP talks
 | Data sources | GEO_Download | CSV | USGS Earthquake and IBTrACS return CSV |
 | GEO_Download | `data/` CSV store | CSV | Dated snapshots and reference lookups |
 | `data/` CSV store | GEO_ETL | CSV | PySpark reads the snapshots |
-| GEO_ETL | Supabase PostgreSQL | SQL | JDBC writes `geo.*` tables and metrics |
+| GEO_ETL | Supabase PostgreSQL | SQL | JDBC writes `geo.*` tables, metrics and MLlib predictions |
 | Supabase PostgreSQL | GEO_API | SQL | asyncpg reads the `geo` schema |
 | GEO_API | GEO_APP | HTTP + JSON | Browser calls REST endpoints |
 | Supabase PostgreSQL | GEO_Visual | SQL | psycopg reads the `geo` views |
@@ -84,7 +85,7 @@ PostgreSQL over **SQL/JDBC**. GEO_API reads with **SQL/asyncpg**, GEO_APP talks
 |------------|--------------|
 | GEO_E2E | Apache Airflow 3.3.2 (LocalExecutor), Airflow UI (`:8090`), Docker Compose, Docker, PySpark 3.5.5 / Spark standalone, Anaconda, Supabase Postgres (`geo_airflow`), Pydantic 2, Python 3.11 |
 | GEO_Download | Python 3.11, requests, Pydantic 2, CSV, pytest, Ruff, mypy, tox |
-| GEO_ETL | PySpark 3.5.5, Spark standalone, Supabase Postgres (JDBC), Pydantic 2, pytest, Ruff, mypy, tox |
+| GEO_ETL | PySpark 3.5.5, PySpark MLlib (LinearRegression + GBTRegressor), Spark standalone, Supabase Postgres (JDBC), Pydantic 2, pytest, Ruff, mypy, tox |
 | GEO_API | FastAPI, REST API, Uvicorn, Pydantic 2, SQLModel + SQLAlchemy 2 async, Supabase Postgres (asyncpg), pytest, Ruff, mypy, tox |
 | GEO_APP | React 18, Vite, React Router 6, Bootstrap 5, Chart.js 4, Vitest, React Testing Library |
 | GEO_Visual | Streamlit, pandas, Plotly, SQLAlchemy 2, Supabase Postgres (psycopg 3), Pydantic 2, pytest, Ruff, mypy, tox |

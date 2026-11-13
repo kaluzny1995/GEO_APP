@@ -41,7 +41,8 @@ export default function SystemFlowView() {
         <p className="sub muted">
           GEO_E2E orchestrates the pipeline with Airflow. GEO_Download turns {jsonSourceCount} JSON
           APIs and {csvSourceCount} CSV feeds into dated CSV snapshots; GEO_ETL loads them into
-          Supabase PostgreSQL with PySpark; GEO_API serves the geo schema as JSON; GEO_APP and
+          Supabase PostgreSQL with PySpark and fills missing metric dates with MLlib predictions;
+          GEO_API serves the geo schema as JSON; GEO_APP and
           GEO_Visual read from the API or the database. Edge badges show the format that moves
           between each component. The diagram reflows with the window width, so the same
           pipeline stays readable on wide and narrow screens.

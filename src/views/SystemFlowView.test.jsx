@@ -58,6 +58,8 @@ describe('SystemFlowView', () => {
       expect(within(table).getByText(stack.technologies.join(' · '))).toBeInTheDocument()
     })
     expect(within(table).getByText(/Streamlit · pandas · Plotly/i)).toBeInTheDocument()
+    expect(within(table).getByText(/PySpark MLlib predictions/i)).toBeInTheDocument()
+    expect(screen.getByText(/fills missing metric dates with MLlib predictions/i)).toBeInTheDocument()
   })
 
   it('explains how to read the diagram and the responsive labels', () => {

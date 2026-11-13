@@ -43,7 +43,7 @@ describe('systemFlow data', () => {
     const expectedTechs = {
       e2e: ['pydantic'],
       download: ['requests', 'pydantic'],
-      etl: ['pyspark', 'pydantic', 'jdbc'],
+      etl: ['pyspark', 'spark-mllib', 'pydantic', 'jdbc'],
       api: ['rest', 'pydantic', 'sqlmodel', 'sqlalchemy', 'asyncpg'],
       app: ['react-router', 'vite', 'chartjs', 'bootstrap'],
       visual: ['sqlalchemy', 'pandas', 'plotly', 'psycopg', 'pydantic'],
