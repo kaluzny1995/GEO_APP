@@ -205,7 +205,8 @@ GEO_APP/
 ├── vitest.config.js
 ├── DATA_QUALITY_METRICS.md  # GEO_API endpoint contract, metrics & rules
 ├── SYSTEM_FLOW.md           # repository/technology map and flow inventory
-├── TESTS.md                 # automated test inventory & manual checks
+├── TESTS.md                 # automated test inventory index & manual checks
+├── docs/testing/            # split test inventory (frontend, data views, shared/utilities)
 ├── src/
 │   ├── main.jsx             # BrowserRouter + Bootstrap + theme CSS
 │   ├── App.jsx              # Admin shell (Sidebar + TopNavbar + Routes)
