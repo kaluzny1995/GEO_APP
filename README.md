@@ -195,6 +195,11 @@ checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 39
 test files and 281 passing tests. `npm test` runs the suite once; use
 `npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
 
+The 2026-11-23 host-memory investigation and the browser-side cache fix are in
+[docs/memory-leaks-investigation-2026-11-23.md](docs/memory-leaks-investigation-2026-11-23.md).
+The 2026-11-24 follow-up (stable nginx/browser cache, desktop growth) is in
+[docs/memory-leaks-investigation-2026-11-24.md](docs/memory-leaks-investigation-2026-11-24.md).
+
 ## Project structure
 
 ```

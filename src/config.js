@@ -54,6 +54,12 @@ export const API_PATHS = {
 }
 export const API_QUERY_PARAMS = { fileDates: 'file_dates' }
 
+// Data-quality date probe cache. The full probe payload is large, so retain
+// only a few most-recently-used tables and expire entries; a long-lived tab
+// must not keep one payload per visited table.
+export const DATA_QUALITY_INDEX_CACHE_MAX_ENTRIES = 4
+export const DATA_QUALITY_INDEX_CACHE_TTL_MS = 5 * 60 * 1000
+
 // Rows per page in the Data Source Files table.
 export const DATA_SOURCE_FILES_PAGE_SIZE = 10
 

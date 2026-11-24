@@ -5,7 +5,15 @@
 //   GET /data-quality/{table_name}/file-dates?file_dates=overall
 import { dimensionsFromMetrics, overallScore } from '../utils/quality.js'
 import { apiUrl, fetchWithTimeout } from './client.js'
-import { API_PATHS, API_QUERY_PARAMS, FILE_DATES_LIMIT, PROBE_WINDOW_DAYS, OVERALL_DATE } from '../config.js'
+import {
+  API_PATHS,
+  API_QUERY_PARAMS,
+  DATA_QUALITY_INDEX_CACHE_MAX_ENTRIES,
+  DATA_QUALITY_INDEX_CACHE_TTL_MS,
+  FILE_DATES_LIMIT,
+  PROBE_WINDOW_DAYS,
+  OVERALL_DATE,
+} from '../config.js'
 
 const tablePath = (tableName) => `${API_PATHS.dataQuality}/${encodeURIComponent(tableName)}`
 
@@ -28,14 +36,39 @@ export async function fetchDataQuality(tableName, fileDate) {
 // The API has no "list dates" endpoint, so the app probes a rolling window of
 // candidate dates plus `overall` and keeps the `file_date` values that returned
 // rows. The probe response (long-format metric rows for every snapshot) is used
-// to derive both the date list and the quality-score trend, and is cached per
-// table for the session because it can be large.
-const indexCache = new Map()
-
+// to derive both the date list and the quality-score trend.
 const isoDaysAgo = (days) => {
   const d = new Date()
   d.setDate(d.getDate() - days)
   return d.toISOString().slice(0, 10)
+}
+
+// The probe response is large: one long-format metric row per snapshot date,
+// for every metric of the selected table. It is cached per table so switching
+// tables back and forth does not re-download it, but an unbounded cache would
+// retain one such payload for every table visited in the session. The limits
+// live in config.js so they are tuned with the rest of the app settings.
+const indexCache = new Map()
+
+const cachedIndex = (tableName) => {
+  const entry = indexCache.get(tableName)
+  if (!entry) return null
+  if (Date.now() - entry.storedAt >= DATA_QUALITY_INDEX_CACHE_TTL_MS) {
+    indexCache.delete(tableName)
+    return null
+  }
+  // Re-insert so the Map order tracks recency (oldest key is evicted first).
+  indexCache.delete(tableName)
+  indexCache.set(tableName, entry)
+  return entry.index
+}
+
+const storeIndex = (tableName, index) => {
+  indexCache.delete(tableName)
+  indexCache.set(tableName, { index, storedAt: Date.now() })
+  while (indexCache.size > DATA_QUALITY_INDEX_CACHE_MAX_ENTRIES) {
+    indexCache.delete(indexCache.keys().next().value)
+  }
 }
 
 export function clearIndexCache() {
@@ -43,7 +76,7 @@ export function clearIndexCache() {
 }
 
 export async function fetchTableIndex(tableName, fileDate) {
-  const cached = indexCache.get(tableName)
+  const cached = cachedIndex(tableName)
   if (cached) return cached
 
   const candidates = new Set([OVERALL_DATE])
@@ -83,7 +116,7 @@ export async function fetchTableIndex(tableName, fileDate) {
     })
 
   const index = { dates: snapshotDates, trend }
-  indexCache.set(tableName, index)
+  storeIndex(tableName, index)
   return index
 }
 

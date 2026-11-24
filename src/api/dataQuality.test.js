@@ -1,6 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchDataQuality, fetchDataQualityTables, fetchTableIndex, clearIndexCache } from './dataQuality.js'
-import { FILE_DATES_LIMIT, PROBE_WINDOW_DAYS } from '../config.js'
+import {
+  fetchDataQuality,
+  fetchDataQualityTables,
+  fetchTableIndex,
+  clearIndexCache,
+} from './dataQuality.js'
+import {
+  DATA_QUALITY_INDEX_CACHE_MAX_ENTRIES,
+  DATA_QUALITY_INDEX_CACHE_TTL_MS,
+  FILE_DATES_LIMIT,
+  PROBE_WINDOW_DAYS,
+} from '../config.js'
 
 describe('dataQuality API client', () => {
   beforeEach(() => {
@@ -114,6 +124,62 @@ describe('dataQuality API client', () => {
       const index = await fetchTableIndex('avalanche_org', 'overall')
 
       expect(index.dates).toEqual([...index.dates].sort())
+    })
+
+    const mockTableApi = (callsByTable) => {
+      globalThis.fetch = vi.fn(async (url) => {
+        const parsed = new URL(url)
+        const tableName = decodeURIComponent(parsed.pathname.split('/')[2])
+        callsByTable.set(tableName, (callsByTable.get(tableName) ?? 0) + 1)
+        const raw = parsed.searchParams.get('file_dates')
+        const dates = decodeURIComponent(raw).split(',')
+        return {
+          ok: true,
+          status: 200,
+          json: async () =>
+            dates.map((file_date) => ({
+              table_name: tableName,
+              file_date,
+              metric: 'total_records',
+              value: 1,
+              computed_at: '2026-09-21T02:15:00',
+            })),
+        }
+      })
+    }
+
+    it('keeps only the most recently used tables (bounded LRU)', async () => {
+      const callsByTable = new Map()
+      mockTableApi(callsByTable)
+      const tables = Array.from({ length: DATA_QUALITY_INDEX_CACHE_MAX_ENTRIES + 1 }, (_, i) => `table_${i}`)
+
+      for (const table of tables) await fetchTableIndex(table, 'overall')
+      const firstTableCalls = callsByTable.get(tables[0])
+      const newestTableCalls = callsByTable.get(tables.at(-1))
+
+      // The first table was evicted, so asking for it again re-probes the API.
+      await fetchTableIndex(tables[0], 'overall')
+      expect(callsByTable.get(tables[0])).toBeGreaterThan(firstTableCalls)
+
+      // The newest table is still cached and costs no extra requests.
+      await fetchTableIndex(tables.at(-1), 'overall')
+      expect(callsByTable.get(tables.at(-1))).toBe(newestTableCalls)
+    })
+
+    it('expires cached probe results after the TTL', async () => {
+      let now = 1_700_000_000_000
+      vi.spyOn(Date, 'now').mockImplementation(() => now)
+      const callsByTable = new Map()
+      mockTableApi(callsByTable)
+
+      await fetchTableIndex('avalanche_org', 'overall')
+      const firstCalls = callsByTable.get('avalanche_org')
+      await fetchTableIndex('avalanche_org', 'overall')
+      expect(callsByTable.get('avalanche_org')).toBe(firstCalls)
+
+      now += DATA_QUALITY_INDEX_CACHE_TTL_MS + 1
+      await fetchTableIndex('avalanche_org', 'overall')
+      expect(callsByTable.get('avalanche_org')).toBeGreaterThan(firstCalls)
     })
   })
 })
