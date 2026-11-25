@@ -33,7 +33,10 @@ export const DOWNLOAD_FORMATS = [
 // --- GEO_API ---
 // Override the API location with VITE_API_BASE at build/dev time.
 export const API_BASE = import.meta.env?.VITE_API_BASE || 'http://localhost:8000'
-export const API_TIMEOUT_MS = 8000
+// The data-quality date probe can return several MB from Supabase (IBTrACS:
+// ~29k rows for a 100-date batch) and a cold query has been measured at 7-9s.
+// An 8s timeout aborted those requests and surfaced as "API server is down".
+export const API_TIMEOUT_MS = 30000
 // Rolling window probed by the data-quality view to discover snapshot dates.
 // The data-quantity view uses the authoritative /data-quantity/dates endpoint.
 export const PROBE_WINDOW_DAYS = 120

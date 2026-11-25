@@ -199,6 +199,8 @@ The 2026-11-23 host-memory investigation and the browser-side cache fix are in
 [docs/memory-leaks-investigation-2026-11-23.md](docs/memory-leaks-investigation-2026-11-23.md).
 The 2026-11-24 follow-up (stable nginx/browser cache, desktop growth) is in
 [docs/memory-leaks-investigation-2026-11-24.md](docs/memory-leaks-investigation-2026-11-24.md).
+The 2026-11-25 API-timeout investigation is in
+[docs/api-timeouts.md](docs/api-timeouts.md).
 
 ## Project structure
 

@@ -33,10 +33,10 @@ export async function fetchDataQuality(tableName, fileDate) {
   )
 }
 
-// The API has no "list dates" endpoint, so the app probes a rolling window of
-// candidate dates plus `overall` and keeps the `file_date` values that returned
-// rows. The probe response (long-format metric rows for every snapshot) is used
-// to derive both the date list and the quality-score trend.
+// The API exposes GET /data-quality/{table}/dates, but the dashboard also needs
+// the metric rows behind each snapshot to draw the quality-score trend. It
+// therefore probes /file-dates for a rolling window of candidate dates plus
+// `overall`; the response is reused for both the date list and the trend.
 const isoDaysAgo = (days) => {
   const d = new Date()
   d.setDate(d.getDate() - days)
