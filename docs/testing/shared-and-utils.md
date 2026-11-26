@@ -115,15 +115,15 @@ thresholds and change direction.
 - toneFor > returns warn for 75-89
 - toneFor > returns bad for < 75
 
-### `src/api/dataQuality.test.js` (7)
+### `src/api/dataQuality.test.js` (9)
 
 Covers API-down classification for network failures/timeouts, pass-through of
-HTTP errors and the authoritative table/view list.
+HTTP errors and the authoritative measured-table list (views excluded).
 
 - classifies network failures as API-down connection errors
 - classifies aborted requests (timeout) as API-down connection errors
 - passes through HTTP errors without the connection flag
-- fetches the authoritative table/view list and sorts it
+- fetches the measured table list, excluding views, and sorts it
 
 ### `src/api/eventCounts.test.js` (3)
 

@@ -109,11 +109,11 @@ describe('DataQualityView', () => {
     expect(within(tableSelect).getByRole('option', { name: 'union_etl' })).toBeInTheDocument()
   })
 
-  it('adds relations returned by the API table list (e.g. views)', async () => {
+  it('filters *_vw relations out of the API table list', async () => {
     mockFetch.mockImplementation(async (url) => {
       const target = String(url)
       if (target.endsWith('/data-quality/tables')) {
-        return respondWith([...TABLE_NAMES, 'metrics_avalanche_vw'])
+        return respondWith([...TABLE_NAMES, 'metrics_avalanche_vw', 'phenomenons_us_vw'])
       }
       if (target.includes('/file-dates')) {
         return respondWith([...metricRows('2024-10-15'), ...metricRows('overall')])
@@ -122,9 +122,12 @@ describe('DataQualityView', () => {
     })
     await renderLoaded()
     expect(
-      within(selects()[0]).getByRole('option', { name: 'metrics_avalanche_vw' })
-    ).toBeInTheDocument()
-    expect(within(selects()[0]).getAllByRole('option')).toHaveLength(20)
+      within(selects()[0]).queryByRole('option', { name: 'metrics_avalanche_vw' })
+    ).not.toBeInTheDocument()
+    expect(
+      within(selects()[0]).queryByRole('option', { name: 'phenomenons_us_vw' })
+    ).not.toBeInTheDocument()
+    expect(within(selects()[0]).getAllByRole('option')).toHaveLength(TABLE_NAMES.length)
   })
 
   it('renders date selector with available snapshots', async () => {

@@ -77,10 +77,11 @@ export const OVERALL_DATE = 'overall'
 export const DEFAULT_TABLE = 'avalanche_org'
 
 // Static fallback for the data-quality dropdown. The live list comes from
-// GET /data-quality/tables (which also includes the *_vw relations); this
-// constant keeps the page usable when the API is down.
+// GET /data-quality/tables, which also returns the *_vw relations; the API
+// client filters those out because DATA_QUALITY is not implemented for views.
 // 19 tables: 9 plain data source tables, 9 ETL tables, 1 union table.
 export const ETL_SUFFIX = '_etl'
+export const VIEW_SUFFIX = '_vw'
 export const UNION_TABLE = 'union_etl'
 export const TABLE_NAMES = [
   // Plain data source tables (9)

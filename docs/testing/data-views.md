@@ -71,7 +71,7 @@ gauges, KPI cards, charts, rule table, score badge and error states.
 - renders the title, dataset name and date
 - renders back to overview link
 - renders dataset selector with all 19 fallback tables
-- adds relations returned by the API table list (e.g. views)
+- filters *_vw relations out of the API table list
 - renders date selector with available snapshots
 - displays quality gauges computed from long-format metrics
 - places the rule table before the gauges in the layout

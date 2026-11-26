@@ -6,7 +6,7 @@ updated whenever the test suite or test counts change.
 ## Current status
 
 - **Test files:** 39
-- **Tests:** 281 passing
+- **Tests:** 283 passing
 - **Framework:** Vitest 2.1.9 + jsdom
 - **Libraries:** React Testing Library, `@testing-library/user-event`,
   `@testing-library/jest-dom`
@@ -56,7 +56,7 @@ npx vitest run --reporter=verbose
 | Event categories and locations | 4 | 20 |
 | Shared UI components | 6 | 23 |
 | Utilities, API clients and visual config | 7 | 64 |
-| **Total** | **39** | **281** |
+| **Total** | **39** | **283** |
 
 ## Detailed suites
 

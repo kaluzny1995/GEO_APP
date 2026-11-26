@@ -39,9 +39,10 @@ UI is a **Vite port inspired by [Black Dashboard React](https://www.creative-tim
   discovered snapshot dates), and a sortable/filterable rule-level table. Table
   and snapshot selectors are in the toolbar, listed alphabetically, and default
   to `avalanche_org` / `overall`, which load automatically when the view opens.
-  The table list is read from `GET /data-quality/tables`, so every `geo` relation
-  (source tables, `*_etl` tables, the `*_vw` views and `union_etl`) appears
-  without a frontend release; `src/config.js` keeps the 19 measured tables as an
+  The table list is read from `GET /data-quality/tables`, so every measured
+  `geo` relation (source tables, `*_etl` tables and `union_etl`) appears without
+  a frontend release; `*_vw` views are filtered out because DATA_QUALITY is not
+  implemented for them. `src/config.js` keeps the 19 measured tables as an
   offline fallback. The selection lives in component state (the URL always stays
   `/data-quality`); changing either dropdown reloads the metrics. The snapshot
   list is discovered from the API (last 120 days + `overall`, probed in batches
@@ -96,9 +97,10 @@ in `src/config.js`). Data-quality snapshots come from the `/data-quality/...`
 endpoints; see [DATA_QUALITY_METRICS.md](DATA_QUALITY_METRICS.md) for their
 contract. The Data Quality view also reads:
 
-- `GET /data-quality/tables` — the authoritative `geo` table/view list for the
-  table dropdown (source + `_etl` + `_vw` relations, excluding
-  `data_quality`)
+- `GET /data-quality/tables` — the authoritative `geo` table list for the table
+  dropdown (source + `_etl` + `union_etl`; `*_vw` views are filtered out in the
+  client because DATA_QUALITY is not implemented for views, and `data_quality`
+  itself is excluded by the API)
 
 The Data Quantity view uses the dedicated quantity endpoints:
 
@@ -192,7 +194,7 @@ npm run lint     # ESLint
 
 The full automated test inventory, including every test case and manual browser
 checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 39
-test files and 281 passing tests. `npm test` runs the suite once; use
+test files and 283 passing tests. `npm test` runs the suite once; use
 `npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
 
 The 2026-11-23 host-memory investigation and the browser-side cache fix are in

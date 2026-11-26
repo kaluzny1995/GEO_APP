@@ -244,10 +244,11 @@ tables).
 The **Data Quality** table dropdown is populated from `GET /data-quality/tables`,
 which introspects `information_schema.tables` for the `geo` schema: 9 source
 tables, their 9 `_etl` tables, the 17 `*_vw` views and `union_etl` (36 relations
-today). The internal `data_quality` metrics table is excluded.
-Views are listed for completeness; data-quality metrics are only written for the
-19 measured source/ETL/union tables, so selecting a view shows the “no snapshots”
-message until a quality job is added for it.
+today). The internal `data_quality` metrics table is excluded by the API, and
+the client filters out every `*_vw` relation because DATA_QUALITY is only
+implemented for the 19 measured source/ETL/union tables. The dropdown therefore
+shows exactly those 19 tables; a view can never be selected into the “no
+snapshots” state.
 
 The **Data Quantity** view tracks the 19 measured tables (`TABLE_NAMES` in
 `src/config.js`, mirrored by GEO_API's `model/data_quantity.py`):

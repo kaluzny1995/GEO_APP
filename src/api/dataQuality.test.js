@@ -52,7 +52,7 @@ describe('dataQuality API client', () => {
     }
   })
 
-  it('fetches the authoritative table/view list and sorts it', async () => {
+  it('fetches the measured table list, excluding views, and sorts it', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -61,7 +61,6 @@ describe('dataQuality API client', () => {
 
     await expect(fetchDataQualityTables()).resolves.toEqual([
       'avalanche_org',
-      'metrics_flood_vw',
       'union_etl',
     ])
     expect(globalThis.fetch.mock.calls[0][0]).toBe('http://localhost:8000/data-quality/tables')

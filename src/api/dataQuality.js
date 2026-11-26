@@ -13,18 +13,30 @@ import {
   FILE_DATES_LIMIT,
   PROBE_WINDOW_DAYS,
   OVERALL_DATE,
+  VIEW_SUFFIX,
 } from '../config.js'
 
 const tablePath = (tableName) => `${API_PATHS.dataQuality}/${encodeURIComponent(tableName)}`
 
-// Authoritative table/view list for the dropdown. GEO_API introspects the geo
-// schema, so newly added source/ETL tables and the *_vw views appear without a
-// frontend release. Returns [] on an invalid payload; the view falls back to
-// TABLE_NAMES.
+// Authoritative measured-table list for the dropdown. GEO_API introspects the
+// geo schema, so newly added source/ETL tables appear without a frontend
+// release. Views are returned by the endpoint too, but the DATA_QUALITY job
+// does not measure them, so they would only produce the "no snapshots" state;
+// filter them out here. Returns [] on an invalid payload; the view falls back
+// to TABLE_NAMES.
 export async function fetchDataQualityTables() {
   const tables = await fetchWithTimeout(apiUrl(`${API_PATHS.dataQuality}/${API_PATHS.dataQualityTables}`))
   if (!Array.isArray(tables)) return []
-  return [...new Set(tables.filter((table) => typeof table === 'string' && table.length > 0))].sort()
+  return [
+    ...new Set(
+      tables.filter(
+        (table) =>
+          typeof table === 'string' &&
+          table.length > 0 &&
+          !table.endsWith(VIEW_SUFFIX)
+      )
+    ),
+  ].sort()
 }
 
 export async function fetchDataQuality(tableName, fileDate) {
