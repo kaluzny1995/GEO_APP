@@ -5,13 +5,22 @@ updated whenever the test suite or test counts change.
 
 ## Current status
 
-- **Test files:** 39
-- **Tests:** 283 passing
+- **Test files:** 40
+- **Tests:** 284 passing
 - **Framework:** Vitest 2.1.9 + jsdom
 - **Libraries:** React Testing Library, `@testing-library/user-event`,
   `@testing-library/jest-dom`
-- **Last verified:** 2026-11-13 with `npm test`, `npm run lint` and
-  `npm run build`
+- **Last verified:** 2026-11-27 with `npm ci`, `npm test`, `npm run lint`,
+  `npm run build` and `npm run test:coverage`
+
+## Dependency compatibility
+
+`@vitest/coverage-v8` must stay on the **same major version as `vitest`** (both
+are `^2.1.9`). A v5 coverage package was previously listed next to a v2
+`vitest`, so a clean `npm ci` in CI failed with `ERESOLVE` before running any
+test. Keep the two entries in `package.json` aligned and commit the regenerated
+`package-lock.json`; the Docker and CI installs deliberately do **not** use
+`--legacy-peer-deps` to mask a mismatch.
 
 ## How to run
 
@@ -55,8 +64,8 @@ npx vitest run --reporter=verbose
 | Data quantity flow | 4 | 20 |
 | Event categories and locations | 4 | 20 |
 | Shared UI components | 6 | 23 |
-| Utilities, API clients and visual config | 7 | 64 |
-| **Total** | **39** | **283** |
+| Utilities, API clients and visual config | 8 | 65 |
+| **Total** | **40** | **284** |
 
 ## Detailed suites
 

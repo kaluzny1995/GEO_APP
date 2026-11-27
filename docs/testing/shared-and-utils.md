@@ -59,7 +59,7 @@ Covers badge tones and children rendering.
 - renders with bad tone
 - renders children
 
-## Utilities, API clients and visual config (64)
+## Utilities, API clients and visual config (65)
 
 ### `src/utils/tableExport.test.js` (9)
 
@@ -133,6 +133,12 @@ requests carry the explicit `?limit=10000` that keeps every source in the respon
 - requests the category endpoint with the full 10,000-group limit
 - requests the location endpoint with the full 10,000-group limit
 - classifies network failures as API-down connection errors
+
+### `src/test/dependencyCompatibility.test.js` (1)
+
+Guards the Vitest/coverage peer contract that `npm ci` enforces in CI.
+
+- keeps `@vitest/coverage-v8` on the same major version as `vitest`
 
 ### `src/variables/charts.test.js` (8)
 

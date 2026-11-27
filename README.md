@@ -181,7 +181,8 @@ docker compose build geo_react_app
 
 ```bash
 nvm use || nvm install 20
-npm install
+npm install      # local development; use npm ci for a clean lockfile install
+npm ci           # reproducible install used by CI / the Docker image
 npm run dev      # http://localhost:5173
 npm run build
 npm run preview
@@ -193,9 +194,11 @@ npm run lint     # ESLint
 ## Testing
 
 The full automated test inventory, including every test case and manual browser
-checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 39
-test files and 283 passing tests. `npm test` runs the suite once; use
+checks, is documented in [TESTS.md](TESTS.md). The suite currently contains 40
+test files and 284 passing tests. `npm test` runs the suite once; use
 `npm run test:watch` for watch mode and `npm run test:coverage` for coverage.
+`@vitest/coverage-v8` and `vitest` must stay on the same major version; see
+[TESTS.md — Dependency compatibility](TESTS.md#dependency-compatibility).
 
 The 2026-11-23 host-memory investigation and the browser-side cache fix are in
 [docs/memory-leaks-investigation-2026-11-23.md](docs/memory-leaks-investigation-2026-11-23.md).
